@@ -5,6 +5,10 @@
 # haxball-refluxed
 
 <p align="center">
+  🇺🇸 English | <a href="README.es.md">🇪🇸 Español</a>
+</p>
+
+<p align="center">
 <a href="LICENSE">
   <img src="https://img.shields.io/badge/license-MIT-000000.svg?style=flat-square" alt="License">
 </a>
