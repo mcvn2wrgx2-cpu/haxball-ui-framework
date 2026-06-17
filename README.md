@@ -349,4 +349,4 @@ MIT
 
 ---
 
-<img src="https://tenor.com/es/view/happy-cat-gif-10804346947536782797" alt="gif" width="500">
+<img src="https://c.tenor.com/lfDATg4Bhc0AAAAC/tenor.gif" alt="HappyCat" width="350">
