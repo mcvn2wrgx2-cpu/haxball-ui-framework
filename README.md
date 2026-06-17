@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.png" alt="HaxBall Refluxed Banner" width="100%" />
+</p>
+
 # haxball-refluxed
 
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
