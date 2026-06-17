@@ -346,3 +346,7 @@ This project is in early architectural stage.
 # 📄 License
 
 MIT
+
+---
+
+<img src="https://tenor.com/es/view/happy-cat-gif-10804346947536782797" alt="gif" width="500">
