@@ -21,6 +21,9 @@
 <a href="#project-structure">
   <img src="https://img.shields.io/badge/Monorepo-pnpm--workspaces-f69220.svg?style=flat-square&logo=pnpm&logoColor=white" alt="Monorepo">
 </a>
+<a href="#project-structure">
+  <img src="https://img.shields.io/badge/contributions-welcome-000000.svg?style=flat-square&logo=git&logoColor=white" alt="Contributions Welcome">
+</a>
 </p>
 
 
