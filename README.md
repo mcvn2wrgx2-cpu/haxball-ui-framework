@@ -4,11 +4,21 @@
 
 # haxball-refluxed
 
-![Stats](https://github-readme-stats.vercel.app/api?username=mcvn2wrgx2-cpu&show_icons=true&theme=dark&hide_border=false)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/typescript-strict-blue)](https://www.typescriptlang.org/)
-[![Architecture](https://img.shields.io/badge/architecture-plugin--based-purple)](#architecture)
-[![Monorepo](https://img.shields.io/badge/monorepo-pnpm--workspaces-orange)](#project-structure)
+<p align="center">
+<a href="LICENSE">
+  <img src="https://img.shields.io/badge/license-MIT-000000.svg?style=flat-square" alt="License">
+</a>
+<a href="https://www.typescriptlang.org/">
+  <img src="https://img.shields.io/badge/TypeScript-Strict-007acc.svg?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+</a>
+<a href="#architecture">
+  <img src="https://img.shields.io/badge/Architecture-Plugin--Based-7b2cbf.svg?style=flat-square" alt="Architecture">
+</a>
+<a href="#project-structure">
+  <img src="https://img.shields.io/badge/Monorepo-pnpm--workspaces-f69220.svg?style=flat-square&logo=pnpm&logoColor=white" alt="Monorepo">
+</a>
+</p>
+
 
 **HaxBall Refluxed is a TypeScript framework for building modular extensions, UI systems, overlays, and runtime tools for HaxBall.**
 
@@ -37,15 +47,12 @@ Everything is built around a single principle:
 
 Refluxed is divided into 4 layers:
 
-```
-Loader Layer (Browser / Electron)
-        ↓
-Core Runtime (EventBus + State + Plugins)
-        ↓
-UI Layer (HUD / Overlays / Themes)
-        ↓
-Plugin Layer (User-defined extensions)
-```
+| Layer | Responsibility |
+| :--- | :--- |
+| **Loader Layer** | Browser injection / Electron environment bootstrapping |
+| **Core Runtime** | EventBus orchestration, shared state, and plugin lifecycle |
+| **UI Layer** | Rendering HUD, responsive overlays, and custom themes |
+| **Plugin Layer** | User-defined custom extensions and runtime hooks |
 
 ---
 
@@ -247,7 +254,7 @@ const app = createRefluxed();
 app.use(ExamplePlugin);
 
 app.events.emit("playerJoin", {
-  name: "Nicolas"
+  name: "mcvn"
 });
 ```
 
@@ -305,32 +312,22 @@ Outputs:
 
 # 🗺️ Roadmap
 
-## Phase 1
-
-* core runtime stabilization
-* plugin lifecycle finalization
-
-## Phase 2
-
-* hot-reload plugins
-* devtools overlay
-* event inspector
-
-## Phase 3
-
-* Electron runtime wrapper
-* plugin marketplace system
-* persistent state layer
+- [x] **Phase 1: Foundation**
+  - [x] Core runtime stabilization
+  - [x] Plugin lifecycle finalization
+- [ ] **Phase 2: Developer Experience**
+  - [ ] Hot-reload plugins
+  - [ ] Devtools overlay & Event inspector
+- [ ] **Phase 3: Ecosystem**
+  - [ ] Electron runtime wrapper
+  - [ ] Plugin marketplace system & Persistent state layer
+  - [ ] Cook a Cake
 
 ---
 
 # ⚠️ Status
 
-This project is in early architectural stage.
-
-* APIs may change
-* modules are experimental
-* structure is actively evolving
+> **Project Status:** This project is in an early architectural stage. APIs may change frequently, modules are highly experimental, and the structure is actively evolving.
 
 ---
 
@@ -350,4 +347,7 @@ MIT
 
 ---
 
-<img src="https://c.tenor.com/lfDATg4Bhc0AAAAC/tenor.gif" alt="HappyCat" width="30">
+<p align="center">
+  <img src="https://c.tenor.com/lfDATg4Bhc0AAAAC/tenor.gif" alt="HappyCat" width="30"><br>
+  <sub>made with love :)</sub>
+</p>
