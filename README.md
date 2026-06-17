@@ -4,6 +4,7 @@
 
 # haxball-refluxed
 
+![Stats](https://github-readme-stats.vercel.app/api?username=mcvn2wrgx2-cpu&show_icons=true&theme=dark&hide_border=false)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/typescript-strict-blue)](https://www.typescriptlang.org/)
 [![Architecture](https://img.shields.io/badge/architecture-plugin--based-purple)](#architecture)
