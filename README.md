@@ -2,7 +2,7 @@
   <img src="banner.png" alt="HaxBall Refluxed Banner" width="100%" />
 </p>
 
-# haxball-refluxed
+# haxball-ui-framework
 
 <p align="center">
   🇺🇸 English | <a href="README.es.md">🇪🇸 Español</a>
@@ -12,343 +12,262 @@
 <a href="LICENSE">
   <img src="https://img.shields.io/badge/license-MIT-000000.svg?style=flat-square" alt="License">
 </a>
-<a href="https://www.typescriptlang.org/">
-  <img src="https://img.shields.io/badge/TypeScript-Strict-007acc.svg?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
-</a>
 <a href="#architecture">
-  <img src="https://img.shields.io/badge/Architecture-Plugin--Based-7b2cbf.svg?style=flat-square" alt="Architecture">
+  <img src="https://img.shields.io/badge/Architecture-DOM--based-7b2cbf.svg?style=flat-square" alt="Architecture">
 </a>
 <a href="#project-structure">
-  <img src="https://img.shields.io/badge/Monorepo-pnpm--workspaces-f69220.svg?style=flat-square&logo=pnpm&logoColor=white" alt="Monorepo">
+  <img src="https://img.shields.io/badge/vanilla-JavaScript-f7df1e.svg?style=flat-square&logo=javascript&logoColor=black" alt="Vanilla JS">
 </a>
 <a href="#project-structure">
   <img src="https://img.shields.io/badge/contributions-welcome-000000.svg?style=flat-square&logo=git&logoColor=white" alt="Contributions Welcome">
 </a>
 </p>
 
+**HaxBall UI Framework is a minimal, stable UI layer for building overlay windows on top of the HaxBall client.**
 
-**HaxBall Refluxed is a TypeScript framework for building modular extensions, UI systems, overlays, and runtime tools for HaxBall.**
-
-It is not a client and not a browser extension.
-It is a **framework layer that can be embedded into multiple environments** (browser loader, Electron, or external tooling).
+It is not a full framework like React. It is not a game engine.
+It is a **small, well-designed UI core** that gives you full DOM control without fighting HaxBall.
 
 ---
 
-# 🧠 Core Idea
+## 🧠 Core Idea
 
-Refluxed introduces a **runtime abstraction layer** over HaxBall that enables:
+HaxBall UI Framework introduces a **thin overlay layer** over the HaxBall DOM that enables:
 
-* plugin-based extensibility
-* event-driven architecture
-* UI + HUD composition system
-* shared state runtime
-* environment-agnostic execution
+- window creation and management
+- dynamic content updates
+- clean lifecycle and destruction
+- full CSS isolation via Shadow DOM
+- safe event handling that doesn't leak into the game
 
 Everything is built around a single principle:
 
-> The core never changes — everything else is a plugin.
+> One API. One namespace. Full control.
 
 ---
 
-# ⚙️ Architecture
+## ⚙️ Architecture
 
-Refluxed is divided into 4 layers:
+The framework is divided into 4 layers:
 
 | Layer | Responsibility |
 | :--- | :--- |
-| **Loader Layer** | Browser injection / Electron environment bootstrapping |
-| **Core Runtime** | EventBus orchestration, shared state, and plugin lifecycle |
-| **UI Layer** | Rendering HUD, responsive overlays, and custom themes |
-| **Plugin Layer** | User-defined custom extensions and runtime hooks |
+| **RootMount** | Detects execution context, anchors `#haxui-root` to `document.body`, re-anchors if HaxBall clears the DOM |
+| **Core** | `WindowManager`, `Window`, `EventGuard`, `StyleManager`, `EventRegistry` |
+| **Public API** | `window.HaxUI` — the only global name exposed |
+| **WindowHandle** | Lightweight object returned per window — no internals exposed |
 
 ---
 
-# 📦 Project Structure
+## 📦 Project Structure
 
 ```txt
-haxball-refluxed/
+haxball-ui-framework/
 │
-├── packages/
-│   ├── core/               # Runtime core (event system, plugins)
-│   ├── ui/                 # HUD + overlays + themes
-│   ├── loader-browser/     # Browser injection loader
-│   ├── plugins/            # Example plugins
+├── core/
+│   ├── HaxUI.js            # Public API entry point
+│   ├── WindowManager.js    # Window registry and lifecycle
+│   ├── Window.js           # Individual window with Shadow DOM
+│   ├── RootMount.js        # Root node, context detection, re-anchor
+│   ├── EventGuard.js       # Per-event-type policy for game isolation
+│   ├── StyleManager.js     # Base styles injected into each Shadow Root
+│   └── EventRegistry.js    # Listener registry for clean destroy()
 │
-├── examples/
-│   └── basic/              # Minimal working example
+├── constants/
+│   └── config.js           # BASE_Z_INDEX, namespace, operation modes
 │
-├── pnpm-workspace.yaml
-├── tsconfig.base.json
-├── vite.config.ts
-└── package.json
+├── utils/
+│   └── sanitize.js         # DOMParser wrapper for safe setContent()
+│
+├── dev/
+│   └── playground.js       # Manual tests and console examples
+│
+├── build.js                # Concatenates modules into a single IIFE bundle
+├── package.json
+└── haxball-ui.bundle.js    # Generated output — inject this into HaxBall
 ```
 
 ---
 
-# 🚀 Installation
+## 🚀 Getting Started
 
-## 1. Clone repository
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/mcvn2wrgx2-cpu/haxball-refluxed
-cd haxball-refluxed
+git clone https://github.com/your-username/haxball-ui-framework
+cd haxball-ui-framework
 ```
 
----
+### 2. Build the bundle
 
-## 2. Install dependencies
+No dependencies required. Just Node.js.
 
 ```bash
-pnpm install
+node build.js
+# → haxball-ui.bundle.js
 ```
+
+### 3. Inject into HaxBall
+
+**Option A — DevTools console** (development):
+Paste the contents of `haxball-ui.bundle.js` directly into the browser console while HaxBall is open.
+
+**Option B — Tampermonkey** (recommended):
+Create a userscript with `@require file:///absolute/path/to/haxball-ui.bundle.js` and enable local file access in Tampermonkey settings.
 
 ---
 
-## 3. Build all packages
+## 🧩 Public API
 
-```bash
-pnpm build
+### Initialize
+
+```js
+// Optional — called automatically on first createWindow() if omitted
+HaxUI.init({ baseZ: 9000 });
 ```
 
----
+### Create a window
 
-## 4. Run example
-
-```bash
-pnpm --filter basic dev
-```
-
----
-
-# 🧩 Core API
-
-## Create runtime
-
-```ts
-import { createRefluxed } from "@refluxed/core";
-
-const app = createRefluxed();
-```
-
----
-
-## Event system
-
-```ts
-app.events.on("playerJoin", (player) => {
-  console.log(player.name);
-});
-
-app.events.emit("toast", {
-  message: "Hello world"
+```js
+const win = HaxUI.createWindow({
+  id: 'stats',
+  title: 'Statistics',
+  width: 260,
+  height: 180,
+  x: 16,
+  y: 16,
+  content: '<p>Loading...</p>'
 });
 ```
 
----
+### Update content
 
-## State access
+```js
+// Safe: pass a Node, not a raw string with external data
+const node = document.createElement('div');
+node.textContent = 'Goals: ' + data.goals;
+win.setContent(node);
 
-```ts
-app.state.score = 10;
-console.log(app.state.score);
+// Also valid for static markup
+win.setContent('<p>Match ended</p>');
+```
+
+### Show / hide
+
+```js
+win.show();
+win.hide();
+```
+
+### Destroy
+
+```js
+win.destroy();
+
+// Or by ID
+HaxUI.destroyWindow('stats');
+
+// Or everything at once (use on script unload)
+HaxUI.destroyAll();
+```
+
+### Get an existing window
+
+```js
+const existing = HaxUI.getWindow('stats');
+if (existing) {
+  existing.setContent('<p>Restarting...</p>');
+}
+// getWindow() returns null if not found — never throws
 ```
 
 ---
 
-# 🔌 Plugin System
+## 🔒 Design Decisions
 
-Plugins are isolated modules that extend the runtime.
+Every decision responds to a specific HaxBall environment risk.
 
-## Plugin structure
-
-```ts
-export const MyPlugin = {
-  name: "my-plugin",
-
-  onLoad(ctx) {
-    ctx.events.on("playerJoin", (player) => {
-      ctx.events.emit("toast", {
-        message: `${player.name} joined`
-      });
-    });
-  },
-
-  onUnload(ctx) {
-    // cleanup logic
-  }
-};
-```
+| Decision | Risk mitigated |
+| :--- | :--- |
+| Shadow DOM per window (with CSS namespace fallback) | HaxBall's global CSS bleeding into overlay elements |
+| Single `window.HaxUI` namespace | Collisions with HaxBall's own globals or other scripts |
+| `EventGuard` with per-event-type policy | Keyboard/mouse events leaking into the game |
+| `BASE_Z = 9000`, configurable | Overlay windows rendering behind HaxBall's own menus |
+| `MutationObserver` in `RootMount` | HaxBall clearing the DOM on room transitions |
+| `DOMParser` in `setContent()` | XSS when rendering external strings (player names, chat) |
+| `WindowHandle._destroyed` flag | Safe post-destroy calls — no errors inside game callbacks |
+| Context detection in `RootMount.init()` | Script injected into the wrong frame (iframe environments) |
 
 ---
 
-## Register plugin
+## 🎯 Example: Live Stats Overlay
 
-```ts
-app.use(MyPlugin);
-```
+```js
+HaxUI.init();
 
----
-
-## Plugin context
-
-Each plugin receives:
-
-* event bus
-* shared state
-* runtime hooks
-
-```ts
-type PluginContext = {
-  events: EventBus;
-  state: Record<string, any>;
-};
-```
-
----
-
-# 🎨 UI System
-
-The UI layer provides lightweight overlays and HUD components.
-
-## HUD example
-
-```ts
-import { HUD } from "@refluxed/ui";
-
-const hud = new HUD();
-
-hud.show("Match started");
-```
-
----
-
-## Behavior
-
-* auto-removes after timeout
-* DOM-based overlay system
-* minimal performance impact
-
----
-
-# 🔌 Browser Loader
-
-The browser loader injects the runtime into a HaxBall session.
-
-```ts
-import { createRefluxed } from "@refluxed/core";
-import { HUD } from "@refluxed/ui";
-
-const app = createRefluxed();
-const hud = new HUD();
-
-app.events.on("toast", (p) => {
-  hud.show(p.message);
+const stats = HaxUI.createWindow({
+  id: 'haxui-stats',
+  title: 'Stats',
+  width: 260,
+  height: 180,
+  x: 16,
+  y: 16
 });
 
-(window as any).refluxed = app;
+function onGameData(data) {
+  const node = document.createElement('div');
+  node.innerHTML = [
+    '<div>Team 1: ' + data.score[0] + '</div>',
+    '<div>Team 2: ' + data.score[1] + '</div>',
+    '<div>Possession: ' + data.possession + '%</div>',
+    '<div>Time: ' + data.time + '</div>'
+  ].join('');
+  stats.setContent(node);
+}
+
+function onLeaveRoom() {
+  HaxUI.destroyAll();
+}
 ```
 
 ---
 
-# 🧪 Example Usage
+## 🗺️ Roadmap
 
-```ts
-import { createRefluxed } from "@refluxed/core";
-import { ExamplePlugin } from "@refluxed/plugins";
-
-const app = createRefluxed();
-
-app.use(ExamplePlugin);
-
-app.events.emit("playerJoin", {
-  name: "mcvn"
-});
-```
-
----
-
-# 🧱 Core Modules
-
-## Event System
-
-* strongly typed event bus
-* pub/sub architecture
-* zero coupling between modules
+- [x] **v0 — Core**
+  - [x] Window creation and destruction
+  - [x] Dynamic content updates
+  - [x] Shadow DOM isolation with CSS fallback
+  - [x] Event isolation from the game
+  - [x] DOM re-anchor on HaxBall transitions
+- [ ] **v1 — Interaction**
+  - [ ] Drag & drop windows
+  - [ ] Resize from edges
+- [ ] **v2 — Components**
+  - [ ] Component system for `setContent()`
+  - [ ] Base components: text, table, list, button
+- [ ] **v3 — Plugins**
+  - [ ] `HaxUI.use(plugin)` plugin registration
+  - [ ] Window lifecycle hooks for plugins
 
 ---
 
-## Plugin System
+## ⚠️ Status
 
-* lifecycle hooks (`onLoad`, `onUnload`)
-* isolated execution context
-* runtime registration/unregistration
+> **Project Status:** v0 — core architecture stable, APIs may still evolve.
 
 ---
 
-## State System
+## 🧠 Design Philosophy
 
-* shared mutable runtime state
-* plugin-accessible
-* minimal global overhead
-
----
-
-## UI System
-
-* overlay rendering layer
-* HUD abstraction
-* theme-ready structure (WIP)
+- minimal surface area, maximum control
+- one global name, zero internals exposed
+- every decision traceable to a real HaxBall environment risk
+- extensible to v1–v3 without breaking the v0 API contract
 
 ---
 
-# 🧪 Build System
-
-Powered by **Vite (library mode)** + TypeScript strict mode.
-
-```bash
-pnpm build
-```
-
-Outputs:
-
-* ESM build
-* type declarations
-* tree-shakeable modules
-
----
-
-# 🗺️ Roadmap
-
-- [x] **Phase 1: Foundation**
-  - [x] Core runtime stabilization
-  - [x] Plugin lifecycle finalization
-- [ ] **Phase 2: Developer Experience**
-  - [ ] Hot-reload plugins
-  - [ ] Devtools overlay & Event inspector
-- [ ] **Phase 3: Ecosystem**
-  - [ ] Electron runtime wrapper
-  - [ ] Plugin marketplace system & Persistent state layer
-  - [ ] Cook a Cake
-
----
-
-# ⚠️ Status
-
-> **Project Status:** This project is in an early architectural stage. APIs may change frequently, modules are highly experimental, and the structure is actively evolving.
-
----
-
-# 🧠 Design Philosophy
-
-* framework-first, not client-first
-* composition over modification
-* plugins over patching
-* deterministic runtime behavior
-* environment-agnostic design
-
----
-
-# 📄 License
+## 📄 License
 
 MIT
 

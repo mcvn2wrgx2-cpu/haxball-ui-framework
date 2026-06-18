@@ -2,367 +2,272 @@
   <img src="banner.png" alt="HaxBall Refluxed Banner" width="100%" />
 </p>
 
-# haxball-refluxed en Español
+# haxball-ui-framework
 
 <p align="center">
-  🇪🇸 Español | <a href="README.md">🇺🇸 English</a>
+  <a href="README.md">🇺🇸 English</a> | 🇪🇸 Español
 </p>
 
 <p align="center">
 <a href="LICENSE">
   <img src="https://img.shields.io/badge/license-MIT-000000.svg?style=flat-square" alt="License">
 </a>
-<a href="https://www.typescriptlang.org/">
-  <img src="https://img.shields.io/badge/TypeScript-Strict-007acc.svg?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+<a href="#arquitectura">
+  <img src="https://img.shields.io/badge/Architecture-DOM--based-7b2cbf.svg?style=flat-square" alt="Architecture">
 </a>
-<a href="#architecture">
-  <img src="https://img.shields.io/badge/Architecture-Plugin--Based-7b2cbf.svg?style=flat-square" alt="Architecture">
+<a href="#estructura-del-proyecto">
+  <img src="https://img.shields.io/badge/vanilla-JavaScript-f7df1e.svg?style=flat-square&logo=javascript&logoColor=black" alt="Vanilla JS">
 </a>
-<a href="#project-structure">
-  <img src="https://img.shields.io/badge/Monorepo-pnpm--workspaces-f69220.svg?style=flat-square&logo=pnpm&logoColor=white" alt="Monorepo">
-</a>
-<a href="#project-structure">
+<a href="#estructura-del-proyecto">
   <img src="https://img.shields.io/badge/contributions-welcome-000000.svg?style=flat-square&logo=git&logoColor=white" alt="Contributions Welcome">
 </a>
 </p>
 
+**HaxBall UI Framework es una capa UI mínima y estable para construir ventanas overlay sobre el cliente de HaxBall.**
 
-**HaxBall Refluxed es un framework de TypeScript para crear extensiones modulares, sistemas de interfaz de usuario, superposiciones y herramientas de ejecución para HaxBall.**
-
-No es un cliente ni una extensión de navegador.
-
-Es una **capa de framework que se puede integrar en múltiples entornos** (cargador de navegador, Electron o herramientas externas).
+No es un framework completo tipo React. No es un engine de juego.
+Es un **núcleo UI pequeño y bien diseñado** que te da control total del DOM sin pelear con HaxBall.
 
 ---
 
-# 🧠 Idea principal
+## 🧠 Idea Central
 
-Refluxed introduce una **capa de abstracción en tiempo de ejecución** sobre HaxBall que permite:
+HaxBall UI Framework introduce una **capa de overlay liviana** sobre el DOM de HaxBall que permite:
 
-* Extensibilidad mediante plugins
-* Arquitectura basada en eventos
-* Sistema de composición de interfaz de usuario y HUD
-* Tiempo de ejecución con estado compartido
-* Ejecución independiente del entorno
+- crear y gestionar ventanas
+- actualizar contenido dinámicamente
+- destrucción limpia con ciclo de vida completo
+- aislamiento total de CSS via Shadow DOM
+- manejo seguro de eventos que no se filtran al juego
 
-Todo se basa en un principio fundamental:
+Todo está construido alrededor de un principio:
 
-> El núcleo permanece inmutable; todo lo demás es un plugin.
+> Una API. Un namespace. Control total.
 
 ---
 
-# ⚙️ Arquitectura
+## ⚙️ Arquitectura
 
-Refluxed se divide en 4 capas:
+El framework se divide en 4 capas:
 
 | Capa | Responsabilidad |
 | :--- | :--- |
-| **Capa de carga** | Inyección del navegador / Arranque del entorno Electron |
-| **Entorno de ejecución principal** | Orquestación de EventBus, estado compartido y ciclo de vida de los plugins |
-| **Capa de interfaz de usuario** | Renderizado de HUD, superposiciones responsivas y temas personalizados |
-| **Capa de plugins** | Extensiones personalizadas definidas por el usuario y hooks de tiempo de ejecución |
+| **RootMount** | Detecta el contexto de ejecución, ancla `#haxui-root` a `document.body`, re-ancla si HaxBall limpia el DOM |
+| **Core** | `WindowManager`, `Window`, `EventGuard`, `StyleManager`, `EventRegistry` |
+| **API pública** | `window.HaxUI` — el único nombre global expuesto |
+| **WindowHandle** | Objeto liviano retornado por ventana — no expone internals |
 
 ---
 
-# 📦 Estructura del proyecto
+## 📦 Estructura del Proyecto
 
 ```txt
-haxball-refluxed/
+haxball-ui-framework/
 │
-├── packages/
-│ ├── core/ # Núcleo de ejecución (sistema de eventos, plugins)
-│ ├── ui/ # HUD + superposiciones + temas
-│ ├── loader-browser/ # Cargador de inyección del navegador
-│ ├── plugins/ # Plugins de ejemplo
+├── core/
+│   ├── HaxUI.js            # Punto de entrada de la API pública
+│   ├── WindowManager.js    # Registro y ciclo de vida de ventanas
+│   ├── Window.js           # Ventana individual con Shadow DOM
+│   ├── RootMount.js        # Nodo raíz, detección de contexto, re-anclaje
+│   ├── EventGuard.js       # Política por tipo de evento para aislar el juego
+│   ├── StyleManager.js     # Estilos base inyectados en cada Shadow Root
+│   └── EventRegistry.js    # Registro de listeners para destroy() limpio
 │
-├── examples/
-│ └── basic/ # Ejemplo mínimo funcional
+├── constants/
+│   └── config.js           # BASE_Z_INDEX, namespace, modos de operación
 │
-├── pnpm-workspace.yaml
-├── tsconfig.base.json
-├── vite.config.ts
-└── package.json
+├── utils/
+│   └── sanitize.js         # Wrapper de DOMParser para setContent() seguro
+│
+├── dev/
+│   └── playground.js       # Pruebas manuales y ejemplos en consola
+│
+├── build.js                # Concatena los módulos en un bundle IIFE único
+├── package.json
+└── haxball-ui.bundle.js    # Output generado — esto es lo que se inyecta en HaxBall
 ```
 
 ---
 
-# 🚀 Instalación
+## 🚀 Inicio Rápido
 
-## 1. Clonar el repositorio
+### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/mcvn2wrgx2-cpu/haxball-refluxed
-cd haxball-refluxed
+git clone https://github.com/tu-usuario/haxball-ui-framework
+cd haxball-ui-framework
 ```
 
----
+### 2. Generar el bundle
 
-## 2. Instalar dependencias
+Sin dependencias. Solo Node.js.
 
 ```bash
-pnpm install
+node build.js
+# → haxball-ui.bundle.js
 ```
+
+### 3. Inyectar en HaxBall
+
+**Opción A — Consola de DevTools** (desarrollo):
+Pegar el contenido de `haxball-ui.bundle.js` directamente en la consola del browser con HaxBall abierto.
+
+**Opción B — Tampermonkey** (recomendado):
+Crear un userscript con `@require file:///ruta/absoluta/a/haxball-ui.bundle.js` y activar el acceso a archivos locales en la configuración de Tampermonkey.
 
 ---
 
-## 3. Compilar todos los paquetes
+## 🧩 API Pública
 
-```bash
-pnpm build
+### Inicializar
+
+```js
+// Opcional — se llama automáticamente en el primer createWindow() si se omite
+HaxUI.init({ baseZ: 9000 });
 ```
 
----
+### Crear una ventana
 
-## 4. Ejecutar el ejemplo
-
-```bash
-pnpm --filter basic dev
-```
----
-
-# 🧩 API principal
-
-## Crear entorno de ejecución
-
-```ts
-import { createRefluxed } from "@refluxed/core";
-
-const app = createRefluxed();
-
-```
-
----
-
-## Sistema de eventos
-
-```ts
-app.events.on("playerJoin", (player) => {
-console.log(player.name);
+```js
+const win = HaxUI.createWindow({
+  id: 'stats',
+  title: 'Estadísticas',
+  width: 260,
+  height: 180,
+  x: 16,
+  y: 16,
+  content: '<p>Cargando...</p>'
 });
-
-app.events.emit("toast", {
-message: "Hola mundo"
-});
-
 ```
 
----
+### Actualizar contenido
 
-## Acceso al estado
+```js
+// Seguro: pasar un Node, no un string con datos externos
+const node = document.createElement('div');
+node.textContent = 'Goles: ' + data.goals;
+win.setContent(node);
 
-```ts
-app.state.score = 10;
-console.log(app.state.score);
-
+// También válido para markup estático
+win.setContent('<p>Partida terminada</p>');
 ```
 
----
+### Mostrar / ocultar
 
-# 🔌 Sistema de complementos
+```js
+win.show();
+win.hide();
+```
 
-Los plugins son módulos aislados que extienden el entorno de ejecución.
+### Destruir
 
-## Estructura del plugin
+```js
+win.destroy();
 
-```ts
-export const MyPlugin = {
-name: "my-plugin",
+// O por ID
+HaxUI.destroyWindow('stats');
 
-onLoad(ctx) {
-ctx.events.on("playerJoin", (player) => {
-ctx.events.emit("toast", {
-message: `${player.name} se ha unido`
+// O todo de una vez (usar al descargar el script)
+HaxUI.destroyAll();
+```
 
-});
-});
+### Obtener una ventana existente
 
-},
-
-onUnload(ctx) {
-
-// lógica de limpieza
-
+```js
+const existing = HaxUI.getWindow('stats');
+if (existing) {
+  existing.setContent('<p>Reiniciando...</p>');
 }
-};
-
+// getWindow() retorna null si no existe — nunca lanza
 ```
 
 ---
 
-## Registrar plugin
+## 🔒 Decisiones de Diseño
 
-```ts
-app.use(MyPlugin);
+Cada decisión responde a un riesgo concreto del entorno HaxBall.
 
-```
-
----
-
-## Contexto del plugin
-
-Cada plugin recibe:
-
-* bus de eventos
-* estado compartido
-* ganchos de ejecución
-
-```ts
-type PluginContext = {
-
-events: EventBus;
-
-state: Record<string, any>; };
-```
+| Decisión | Riesgo mitigado |
+| :--- | :--- |
+| Shadow DOM por ventana (con fallback a CSS namespace) | Los estilos globales de HaxBall se filtran a los elementos del overlay |
+| Namespace único `window.HaxUI` | Colisiones con los globals de HaxBall u otros scripts |
+| `EventGuard` con política por tipo de evento | Eventos de teclado/mouse que se filtran al juego |
+| `BASE_Z = 9000`, configurable | Ventanas que quedan detrás de los menús propios de HaxBall |
+| `MutationObserver` en `RootMount` | HaxBall limpia el DOM en transiciones de sala |
+| `DOMParser` en `setContent()` | XSS al renderizar strings externos (nombres de jugadores, chat) |
+| Flag `WindowHandle._destroyed` | Llamadas seguras post-destroy — sin errores dentro de callbacks del juego |
+| Detección de contexto en `RootMount.init()` | Script inyectado en el frame equivocado (entornos con iframe) |
 
 ---
 
-# 🎨 Sistema de interfaz de usuario
+## 🎯 Ejemplo: Overlay de Estadísticas en Vivo
 
-La capa de interfaz de usuario proporciona superposiciones ligeras y componentes HUD.
+```js
+HaxUI.init();
 
-## Ejemplo de HUD
-
-```ts
-import { HUD } from "@refluxed/ui";
-
-const hud = new HUD();
-
-hud.show("Combate iniciado");
-
-```
-
----
-
-## Comportamiento
-
-* Se elimina automáticamente tras un tiempo de espera
-* Sistema de superposición basado en DOM
-* Mínimo impacto en el rendimiento
-
----
-
-# 🔌 Cargador del navegador
-
-El cargador del navegador inyecta el entorno de ejecución en una sesión de HaxBall.
-
-```ts
-import { createRefluxed } from "@refluxed/core";
-
-import { HUD } from "@refluxed/ui";
-
-const app = createRefluxed();
-
-const hud = new HUD();
-
-app.events.on("toast", (p) => {
-hud.show(p.message);
+const stats = HaxUI.createWindow({
+  id: 'haxui-stats',
+  title: 'Estadísticas',
+  width: 260,
+  height: 180,
+  x: 16,
+  y: 16
 });
 
-(window as any).refluxed = app;
+function onGameData(data) {
+  const node = document.createElement('div');
+  node.innerHTML = [
+    '<div>Equipo 1: ' + data.score[0] + '</div>',
+    '<div>Equipo 2: ' + data.score[1] + '</div>',
+    '<div>Posesión: ' + data.possession + '%</div>',
+    '<div>Tiempo: ' + data.time + '</div>'
+  ].join('');
+  stats.setContent(node);
+}
 
+function onLeaveRoom() {
+  HaxUI.destroyAll();
+}
 ```
 
 ---
 
-# 🧪 Ejemplo de uso
+## 🗺️ Hoja de Ruta
 
-```ts
-import { createRefluxed } from "@refluxed/core";
-
-import { ExamplePlugin } from "@refluxed/plugins";
-
-const app = createRefluxed();
-
-app.use(ExamplePlugin);
-
-app.events.emit("playerJoin", {
-name: "mcvn"
-});
-```
-
----
-
-# 🧱 Módulos principales
-
-## Sistema de eventos
-
-* Bus de eventos fuertemente tipado
-* Arquitectura de publicación/suscripción
-* Acoplamiento nulo entre módulos
+- [x] **v0 — Core**
+  - [x] Creación y destrucción de ventanas
+  - [x] Actualización dinámica de contenido
+  - [x] Aislamiento con Shadow DOM y fallback CSS
+  - [x] Aislamiento de eventos del juego
+  - [x] Re-anclaje del DOM en transiciones de HaxBall
+- [ ] **v1 — Interacción**
+  - [ ] Ventanas arrastrables (drag & drop)
+  - [ ] Redimensionar desde los bordes
+- [ ] **v2 — Componentes**
+  - [ ] Sistema de componentes para `setContent()`
+  - [ ] Componentes base: texto, tabla, lista, botón
+- [ ] **v3 — Plugins**
+  - [ ] Registro de plugins con `HaxUI.use(plugin)`
+  - [ ] Hooks del ciclo de vida de ventanas para plugins
 
 ---
 
-## Sistema de plugins
+## ⚠️ Estado
 
-* Ganchos del ciclo de vida (`onLoad`, `onUnload`)
-* Contexto de ejecución aislado
-* Registro/cancelación de registro en tiempo de ejecución
+> **Estado del proyecto:** v0 — arquitectura core estable, las APIs pueden seguir evolucionando.
 
 ---
 
-## Sistema de estado
+## 🧠 Filosofía de Diseño
 
-* Estado compartido y mutable en tiempo de ejecución
-* Accesible mediante plugins
-* Mínima sobrecarga global
-
----
-
-## Sistema de interfaz de usuario
-
-* Capa de renderizado superpuesta
-* Abstracción de HUD
-* Estructura lista para temas (en desarrollo)
----
-
-# 🧪 Sistema de compilación
-
-Con tecnología **Vite (modo librería)** + TypeScript en modo estricto.
-
-```bash
-pnpm build
-```
-
-Salida:
-
-* Compilación ESM
-* Declaraciones de tipo
-* Módulos optimizados para eliminación de código muerto
+- superficie mínima de API, máximo control
+- un nombre global, ningún internal expuesto
+- cada decisión trazable a un riesgo real del entorno HaxBall
+- extensible a v1–v3 sin romper el contrato de API del v0
 
 ---
 
-# 🗺️ Hoja de ruta
-
-- [x] **Fase 1: Fundamentos**
-  - [x] Estabilización del entorno de ejecución principal
-  - [x] Finalización del ciclo de vida de los plugins
-- [ ] **Fase 2: Experiencia del desarrollador**
-  - [ ] Plugins de recarga en caliente
-  - [ ] Superposición de herramientas de desarrollo e inspector de eventos
-- [ ] **Fase 3: Ecosistema**
-  - [ ] Envoltorio de tiempo de ejecución de Electron
-  - [ ] Sistema de mercado de plugins y capa de estado persistente
-  - [ ] Cocinar un pastel
- 
----
-
-# ⚠️ Estado
-
-> **Estado del proyecto:** Este proyecto se encuentra en una fase arquitectónica temprana. Las API pueden cambiar con frecuencia, los módulos son altamente experimentales y la estructura está en constante evolución.
-
----
-
-# 🧠 Filosofía de diseño
-
-* Prioridad al framework, no al cliente
-* Composición sobre modificación
-* Plugins sobre parches
-* Comportamiento determinista en tiempo de ejecución
-* Diseño independiente del entorno
-
----
-
-# 📄 Licencia
+## 📄 Licencia
 
 MIT
 
