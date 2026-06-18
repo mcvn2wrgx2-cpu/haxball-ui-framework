@@ -249,6 +249,7 @@ function onLeaveRoom() {
 - [ ] **v3 — Plugins**
   - [ ] Registro de plugins con `HaxUI.use(plugin)`
   - [ ] Hooks del ciclo de vida de ventanas para plugins
+  - [ ] Hornear un Pastel
 
 ---
 
