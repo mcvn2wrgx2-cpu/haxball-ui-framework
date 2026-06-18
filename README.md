@@ -274,6 +274,10 @@ MIT
 ---
 
 <p align="center">
+  ❤️ <a href=".gitignore">DEVLOG</a>
+</p>
+
+<p align="center">
   <img src="https://c.tenor.com/lfDATg4Bhc0AAAAC/tenor.gif" alt="HappyCat" width="30"><br>
   <sub>made with love :)</sub>
 </p>
