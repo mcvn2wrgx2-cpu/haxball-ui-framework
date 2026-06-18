@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="banner.png" alt="HaxBall Refluxed Banner" width="100%" />
+  <img src="banner.png" alt="HaxBall Banner" width="100%" />
 </p>
 
 # haxball-ui-framework
