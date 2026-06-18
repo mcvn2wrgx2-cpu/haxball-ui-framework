@@ -1,0 +1,9 @@
+{
+  "name": "haxball-ui-framework",
+  "version": "0.1.0",
+  "description": "Minimal UI framework for HaxBall client overlays",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "license": "MIT"
+}
