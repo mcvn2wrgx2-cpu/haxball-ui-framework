@@ -2,7 +2,7 @@
   <img src="banner.png" alt="HaxBall UI Framework Banner" width="100%" />
 </p>
 
-# haxball-ui-framework
+# haxball-ui-framework en Español
 
 <p align="center">
   <a href="README.md">🇺🇸 English</a> | 🇪🇸 Español
