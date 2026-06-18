@@ -249,6 +249,7 @@ function onLeaveRoom() {
 - [ ] **v3 — Plugins**
   - [ ] `HaxUI.use(plugin)` plugin registration
   - [ ] Window lifecycle hooks for plugins
+  - [ ] Cook a Cake
 
 ---
 
