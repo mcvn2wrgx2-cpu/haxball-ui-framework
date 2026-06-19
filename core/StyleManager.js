@@ -3,28 +3,13 @@
 //
 // Base style injection for HaxUI windows.
 //
-// PROBLEM:
-//   HaxBall's global CSS bleeds into any element added to the DOM.
-//   Fonts, colors, box-sizing, margins, and z-index can all be inherited
-//   or overridden by the host page's stylesheet in unexpected ways.
-//
-// SOLUTION:
-//   StyleManager injects a <style> block into each window's Shadow Root
-//   (SHADOW_MODE) or into document.head once (NAMESPACE_MODE fallback).
-//
-//   In SHADOW_MODE:
-//     Styles are scoped to the shadow tree — zero bleed in or out.
-//     Each window gets its own <style> injected into its shadow root.
-//
-//   In NAMESPACE_MODE:
-//     Styles are scoped with the attribute selector
-//     [data-haxui-window] to limit their reach within the real DOM.
-//     A single <style> is injected into document.head on first call.
-//
-// PHILOSOPHY:
-//   The base styles in v0 are intentionally minimal — just enough to make
-//   windows functional and visually coherent without imposing a design.
-//   Theming and custom styles are the caller's responsibility.
+// v1 CHANGES:
+//   - _shadowStyles(theme) and _namespaceStyles(theme) now accept a theme name.
+//   - THEMES.HAXBALL replicates HaxBall's native .dialog style exactly,
+//     using values extracted directly from the live DOM.
+//   - injectIntoShadow(shadowRoot, theme) and injectIntoDocument(theme)
+//     forward the theme to the style generators.
+//   - All v0 callers that omit theme receive THEMES.DEFAULT — no breaking change.
 //
 // INTERNAL USE:
 //   Called once per window by Window.mount().
@@ -33,22 +18,27 @@
 
 var StyleManager = (function () {
 
-  // Tracks whether the NAMESPACE_MODE global style has been injected.
-  // In SHADOW_MODE this flag is unused — each shadow root is independent.
-  var _namespaceStyleInjected = false;
+  // Tracks whether the NAMESPACE_MODE global style has been injected per theme.
+  // Map<theme, true> so multiple themes can coexist in NAMESPACE_MODE.
+  var _injectedThemes = {};
 
-  // ─── Style definitions ────────────────────────────────────────────────────
+  // ─── Theme helpers ────────────────────────────────────────────────────────
 
   /**
-   * Base styles injected into every Shadow Root (SHADOW_MODE).
-   * Uses :host to reset the window container itself, then scopes
-   * internal elements with [data-haxui-*] attribute selectors.
+   * Returns the resolved theme name, defaulting to THEMES.DEFAULT.
    *
-   * @returns {string} CSS string
+   * @param {string} [theme]
+   * @returns {string}
    */
-  function _shadowStyles() {
+  function _resolveTheme(theme) {
+    if (theme === HaxUIConfig.THEMES.HAXBALL) return HaxUIConfig.THEMES.HAXBALL;
+    return HaxUIConfig.THEMES.DEFAULT;
+  }
+
+  // ─── DEFAULT theme ────────────────────────────────────────────────────────
+
+  function _defaultShadowStyles() {
     return [
-      /* Reset the shadow host (the window container element) */
       ':host {',
       '  all: initial;',
       '  display: block;',
@@ -63,7 +53,6 @@ var StyleManager = (function () {
       '  box-shadow: 0 4px 24px rgba(0,0,0,0.55), 0 1px 4px rgba(0,0,0,0.4);',
       '}',
 
-      /* Window chrome wrapper */
       '[data-haxui-window] {',
       '  all: unset;',
       '  display: flex;',
@@ -77,7 +66,6 @@ var StyleManager = (function () {
       '  box-sizing: border-box;',
       '}',
 
-      /* Header bar */
       '[data-haxui-header] {',
       '  all: unset;',
       '  display: flex;',
@@ -92,7 +80,6 @@ var StyleManager = (function () {
       '  box-sizing: border-box;',
       '}',
 
-      /* Header title text */
       '[data-haxui-header] span {',
       '  all: unset;',
       '  font-size: 12px;',
@@ -104,31 +91,140 @@ var StyleManager = (function () {
       '  text-overflow: ellipsis;',
       '}',
 
-      /* Content area */
+      _sharedContentStyles(),
+    ].join('\n');
+  }
+
+  // ─── HAXBALL theme ────────────────────────────────────────────────────────
+
+  function _haxballShadowStyles() {
+    var t = HaxUIConfig.HAXBALL_THEME;
+    return [
+      ':host {',
+      '  all: initial;',
+      '  display: block;',
+      '  position: fixed;',
+      '  box-sizing: border-box;',
+      '  font-family: ' + t.fontFamily + ';',
+      '  font-size: ' + t.fontSize + ';',
+      '  color: ' + t.color + ';',
+      '  z-index: inherit;',
+      '  border-radius: ' + t.borderRadius + ';',
+      '  overflow: hidden;',
+      '  box-shadow: ' + t.shadow + ';',
+      '}',
+
+      '[data-haxui-window] {',
+      '  all: unset;',
+      '  display: flex;',
+      '  flex-direction: column;',
+      '  width: 100%;',
+      '  height: 100%;',
+      '  background: ' + t.background + ';',
+      '  border-radius: ' + t.borderRadius + ';',
+      '  overflow: hidden;',
+      '  box-sizing: border-box;',
+      '}',
+
+      '[data-haxui-header] {',
+      '  all: unset;',
+      '  display: flex;',
+      '  align-items: center;',
+      '  padding: 0 12px;',
+      '  height: 36px;',
+      '  min-height: 36px;',
+      '  background: ' + t.headerBackground + ';',
+      '  border-bottom: ' + t.headerBorder + ';',
+      '  cursor: default;',
+      '  user-select: none;',
+      '  box-sizing: border-box;',
+      '}',
+
+      '[data-haxui-header] span {',
+      '  all: unset;',
+      '  font-family: ' + t.fontFamily + ';',
+      '  font-size: 15px;',
+      '  font-weight: 700;',
+      '  color: ' + t.color + ';',
+      '  overflow: hidden;',
+      '  white-space: nowrap;',
+      '  text-overflow: ellipsis;',
+      '}',
+
+      _sharedContentStyles(t),
+      _haxballButtonStyles(t),
+    ].join('\n');
+  }
+
+  /**
+   * Button styles specific to the HaxBall theme.
+   * Replicates the exact look of HaxBall's Cancel/Leave buttons.
+   *
+   * @param {Object} t - HAXBALL_THEME values
+   * @returns {string}
+   */
+  function _haxballButtonStyles(t) {
+    return [
+      '[data-haxui-content] button {',
+      '  all: unset;',
+      '  display: inline-block;',
+      '  box-sizing: border-box;',
+      '  background: ' + t.buttonBackground + ';',
+      '  border: ' + t.buttonBorder + ';',
+      '  border-radius: ' + t.buttonRadius + ';',
+      '  padding: 6px 18px;',
+      '  color: ' + t.buttonColor + ';',
+      '  font-family: ' + t.fontFamily + ';',
+      '  font-size: 13px;',
+      '  font-weight: 600;',
+      '  cursor: pointer;',
+      '  text-align: center;',
+      '  min-width: 80px;',
+      '}',
+      '[data-haxui-content] button:hover {',
+      '  background: rgb(46, 93, 133);',
+      '  border-color: rgb(255, 255, 255);',
+      '}',
+      '[data-haxui-content] button:active {',
+      '  background: rgb(26, 53, 83);',
+      '}',
+    ].join('\n');
+  }
+
+  // ─── Shared content styles (both themes) ─────────────────────────────────
+
+  /**
+   * Content area styles shared across themes.
+   * Accepts optional theme values for color overrides.
+   *
+   * @param {Object} [t] - theme values (optional)
+   * @returns {string}
+   */
+  function _sharedContentStyles(t) {
+    var color    = t ? t.color    : '#e8e8e8';
+    var fontFam  = t ? t.fontFamily : '"Segoe UI", Arial, sans-serif';
+
+    return [
       '[data-haxui-content] {',
       '  all: unset;',
       '  display: block;',
       '  flex: 1;',
-      '  padding: 10px;',
+      '  padding: 10px 12px;',
       '  overflow-y: auto;',
       '  overflow-x: hidden;',
       '  box-sizing: border-box;',
       '  line-height: 1.5;',
+      '  color: ' + color + ';',
+      '  font-family: ' + fontFam + ';',
       '}',
 
-      /* Scrollbar styling — WebKit only, graceful degradation elsewhere */
-      '[data-haxui-content]::-webkit-scrollbar {',
-      '  width: 4px;',
-      '}',
-      '[data-haxui-content]::-webkit-scrollbar-track {',
-      '  background: transparent;',
-      '}',
+      '[data-haxui-content]::-webkit-scrollbar { width: 4px; }',
+      '[data-haxui-content]::-webkit-scrollbar-track { background: transparent; }',
       '[data-haxui-content]::-webkit-scrollbar-thumb {',
       '  background: rgba(255,255,255,0.15);',
       '  border-radius: 2px;',
       '}',
 
-      /* Generic content elements — reset inherited HaxBall styles */
       '[data-haxui-content] p,',
       '[data-haxui-content] div,',
       '[data-haxui-content] span {',
@@ -140,7 +236,6 @@ var StyleManager = (function () {
       '  line-height: inherit;',
       '}',
 
-      /* Headings */
       '[data-haxui-content] h1,',
       '[data-haxui-content] h2,',
       '[data-haxui-content] h3,',
@@ -150,11 +245,10 @@ var StyleManager = (function () {
       '  all: unset;',
       '  display: block;',
       '  font-weight: 700;',
-      '  color: #e2e8f0;',
+      '  color: ' + color + ';',
       '  margin-bottom: 4px;',
       '}',
 
-      /* Tables */
       '[data-haxui-content] table {',
       '  all: unset;',
       '  display: table;',
@@ -168,16 +262,14 @@ var StyleManager = (function () {
       '  display: table-cell;',
       '  padding: 3px 6px;',
       '  border-bottom: 1px solid rgba(255,255,255,0.06);',
-      '  color: #cbd5e0;',
+      '  color: ' + color + ';',
       '}',
       '[data-haxui-content] th {',
-      '  color: #a0aec0;',
-      '  font-weight: 600;',
+      '  font-weight: 700;',
       '  font-size: 11px;',
       '  letter-spacing: 0.04em;',
       '}',
 
-      /* Inputs */
       '[data-haxui-content] input,',
       '[data-haxui-content] textarea,',
       '[data-haxui-content] select {',
@@ -185,37 +277,19 @@ var StyleManager = (function () {
       '  display: inline-block;',
       '  box-sizing: border-box;',
       '  background: rgba(255,255,255,0.06);',
-      '  border: 1px solid rgba(255,255,255,0.12);',
+      '  border: 1px solid rgba(255,255,255,0.2);',
       '  border-radius: 3px;',
-      '  padding: 3px 6px;',
-      '  color: #e2e8f0;',
-      '  font-size: 12px;',
+      '  padding: 4px 8px;',
+      '  color: ' + color + ';',
+      '  font-size: 13px;',
       '  width: 100%;',
       '}',
       '[data-haxui-content] input:focus,',
       '[data-haxui-content] textarea:focus,',
       '[data-haxui-content] select:focus {',
-      '  outline: 1px solid rgba(99,179,237,0.5);',
+      '  outline: 1px solid rgba(255,255,255,0.4);',
       '}',
 
-      /* Buttons */
-      '[data-haxui-content] button {',
-      '  all: unset;',
-      '  display: inline-block;',
-      '  box-sizing: border-box;',
-      '  background: rgba(99,179,237,0.15);',
-      '  border: 1px solid rgba(99,179,237,0.3);',
-      '  border-radius: 3px;',
-      '  padding: 4px 10px;',
-      '  color: #90cdf4;',
-      '  font-size: 12px;',
-      '  cursor: pointer;',
-      '}',
-      '[data-haxui-content] button:hover {',
-      '  background: rgba(99,179,237,0.25);',
-      '}',
-
-      /* Code blocks */
       '[data-haxui-content] code,',
       '[data-haxui-content] pre {',
       '  all: unset;',
@@ -232,53 +306,48 @@ var StyleManager = (function () {
       '  padding: 6px 8px;',
       '  overflow-x: auto;',
       '  white-space: pre;',
-      '}'
+      '}',
     ].join('\n');
   }
 
-  /**
-   * Styles for NAMESPACE_MODE — scoped with [data-haxui-window].
-   * Injected once into document.head. Less isolated than Shadow DOM
-   * but functional when attachShadow is unavailable.
-   *
-   * @returns {string} CSS string
-   */
-  function _namespaceStyles() {
-    // Same rules as _shadowStyles() but with explicit attribute scope
-    // instead of :host and shadow-tree selectors.
+  // ─── NAMESPACE_MODE equivalents ───────────────────────────────────────────
+
+  function _namespaceStyles(theme) {
     var scope = '[data-haxui-window]';
+    var t     = HaxUIConfig.HAXBALL_THEME;
+    var isHax = theme === HaxUIConfig.THEMES.HAXBALL;
+
     return [
       scope + ' {',
       '  all: initial;',
       '  display: block !important;',
       '  position: fixed !important;',
       '  box-sizing: border-box !important;',
-      '  font-family: "Segoe UI", Arial, sans-serif !important;',
-      '  font-size: 13px !important;',
-      '  color: #e8e8e8 !important;',
-      '  border-radius: 6px !important;',
+      '  font-family: ' + (isHax ? t.fontFamily : '"Segoe UI", Arial, sans-serif') + ' !important;',
+      '  font-size: ' + (isHax ? t.fontSize : '13px') + ' !important;',
+      '  color: ' + (isHax ? t.color : '#e8e8e8') + ' !important;',
+      '  border-radius: ' + (isHax ? t.borderRadius : '6px') + ' !important;',
       '  overflow: hidden !important;',
-      '  background: #1a1a2e !important;',
-      '  border: 1px solid rgba(255,255,255,0.08) !important;',
-      '  box-shadow: 0 4px 24px rgba(0,0,0,0.55), 0 1px 4px rgba(0,0,0,0.4) !important;',
+      '  background: ' + (isHax ? t.background : '#1a1a2e') + ' !important;',
+      '  box-shadow: ' + (isHax ? t.shadow : '0 4px 24px rgba(0,0,0,0.55)') + ' !important;',
       '}',
 
       scope + ' [data-haxui-header] {',
       '  display: flex !important;',
       '  align-items: center !important;',
-      '  padding: 0 10px !important;',
-      '  height: 32px !important;',
-      '  background: #16213e !important;',
-      '  border-bottom: 1px solid rgba(255,255,255,0.07) !important;',
+      '  padding: 0 12px !important;',
+      '  height: ' + (isHax ? '36px' : '32px') + ' !important;',
+      '  background: ' + (isHax ? t.headerBackground : '#16213e') + ' !important;',
+      '  border-bottom: ' + (isHax ? t.headerBorder : '1px solid rgba(255,255,255,0.07)') + ' !important;',
       '  cursor: default !important;',
       '  user-select: none !important;',
       '  box-sizing: border-box !important;',
       '}',
 
       scope + ' [data-haxui-header] span {',
-      '  font-size: 12px !important;',
-      '  font-weight: 600 !important;',
-      '  color: #a0aec0 !important;',
+      '  font-size: ' + (isHax ? '15px' : '12px') + ' !important;',
+      '  font-weight: ' + (isHax ? '700' : '600') + ' !important;',
+      '  color: ' + (isHax ? t.color : '#a0aec0') + ' !important;',
       '  overflow: hidden !important;',
       '  white-space: nowrap !important;',
       '  text-overflow: ellipsis !important;',
@@ -286,66 +355,88 @@ var StyleManager = (function () {
 
       scope + ' [data-haxui-content] {',
       '  display: block !important;',
-      '  padding: 10px !important;',
+      '  padding: 10px 12px !important;',
       '  overflow-y: auto !important;',
       '  overflow-x: hidden !important;',
       '  box-sizing: border-box !important;',
       '  line-height: 1.5 !important;',
-      '  color: #e8e8e8 !important;',
-      '}'
+      '  color: ' + (isHax ? t.color : '#e8e8e8') + ' !important;',
+      '}',
+
+      isHax ? [
+        scope + ' [data-haxui-content] button {',
+        '  background: ' + t.buttonBackground + ' !important;',
+        '  border: ' + t.buttonBorder + ' !important;',
+        '  border-radius: ' + t.buttonRadius + ' !important;',
+        '  color: ' + t.buttonColor + ' !important;',
+        '  padding: 6px 18px !important;',
+        '  font-weight: 600 !important;',
+        '  cursor: pointer !important;',
+        '  min-width: 80px !important;',
+        '}',
+      ].join('\n') : '',
     ].join('\n');
   }
 
   // ─── Public API ───────────────────────────────────────────────────────────
 
   /**
-   * Injects base styles into a Shadow Root (SHADOW_MODE).
-   * Creates a <style> element and appends it to the given shadow root.
-   * Safe to call once per window — each shadow root is independent.
+   * Injects styles into a Shadow Root.
+   * Theme selects the visual style — defaults to THEMES.DEFAULT.
    *
    * @param {ShadowRoot} shadowRoot
+   * @param {string}     [theme]
    */
-  function injectIntoShadow(shadowRoot) {
+  function injectIntoShadow(shadowRoot, theme) {
     if (!shadowRoot) {
       console.warn('[HaxUI] StyleManager.injectIntoShadow: shadowRoot is null');
       return;
     }
-    var style       = document.createElement('style');
-    style.textContent = _shadowStyles();
+    var resolved = _resolveTheme(theme);
+    var css = resolved === HaxUIConfig.THEMES.HAXBALL
+      ? _haxballShadowStyles()
+      : _defaultShadowStyles();
+
+    var style = document.createElement('style');
+    style.textContent = css;
     shadowRoot.appendChild(style);
   }
 
   /**
-   * Injects base styles into document.head (NAMESPACE_MODE fallback).
-   * Only injects once regardless of how many windows are created.
+   * Injects styles into document.head (NAMESPACE_MODE fallback).
+   * Each theme is injected at most once.
+   *
+   * @param {string} [theme]
    */
-  function injectIntoDocument() {
-    if (_namespaceStyleInjected) return;
+  function injectIntoDocument(theme) {
+    var resolved = _resolveTheme(theme);
+    if (_injectedThemes[resolved]) return;
 
-    var style       = document.createElement('style');
-    style.id        = 'haxui-base-styles';
-    style.textContent = _namespaceStyles();
+    var style = document.createElement('style');
+    style.id  = 'haxui-base-styles-' + resolved;
+    style.textContent = _namespaceStyles(resolved);
     document.head.appendChild(style);
-    _namespaceStyleInjected = true;
+    _injectedThemes[resolved] = true;
   }
 
   /**
-   * Removes the NAMESPACE_MODE global style from document.head.
-   * Called by RootMount during full framework teardown.
-   * No-op in SHADOW_MODE — each shadow root is destroyed with its window.
+   * Removes all injected NAMESPACE_MODE styles from document.head.
+   * Called during full framework teardown.
    */
   function removeFromDocument() {
-    var el = document.getElementById('haxui-base-styles');
-    if (el) el.remove();
-    _namespaceStyleInjected = false;
+    Object.keys(_injectedThemes).forEach(function (theme) {
+      var el = document.getElementById('haxui-base-styles-' + theme);
+      if (el) el.remove();
+    });
+    _injectedThemes = {};
   }
 
   // ─────────────────────────────────────────────────────────────────────────
 
   return Object.freeze({
-    injectIntoShadow:     injectIntoShadow,
-    injectIntoDocument:   injectIntoDocument,
-    removeFromDocument:   removeFromDocument
+    injectIntoShadow:   injectIntoShadow,
+    injectIntoDocument: injectIntoDocument,
+    removeFromDocument: removeFromDocument
   });
 
 })();
