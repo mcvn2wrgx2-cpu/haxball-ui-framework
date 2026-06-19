@@ -120,6 +120,26 @@ var WindowManager = (function () {
       },
 
       /**
+       * Hides the window's header bar. (v1)
+       * No-op if destroyed.
+       */
+      hideTitle: function () {
+        if (_guard()) return;
+        var win = _windows.get(windowId);
+        if (win) win.hideTitle();
+      },
+
+      /**
+       * Shows the window's header bar. (v1)
+       * No-op if destroyed.
+       */
+      showTitle: function () {
+        if (_guard()) return;
+        var win = _windows.get(windowId);
+        if (win) win.showTitle();
+      },
+
+      /**
        * Destroys the window and invalidates this handle.
        * Idempotent — safe to call multiple times.
        */
