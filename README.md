@@ -94,7 +94,7 @@ haxball-ui-framework/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/haxball-ui-framework
+git clone https://github.com/mcvn2wrgx2-cpu/haxball-ui-framework
 cd haxball-ui-framework
 ```
 
