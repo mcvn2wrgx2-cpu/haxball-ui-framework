@@ -145,10 +145,37 @@ var HaxUI = (function () {
     if (!_initialized) return;
 
     WindowManager.destroyAll();
+    ButtonInjector.destroyAll();
     StyleManager.removeFromDocument();
     RootMount.teardown();
 
     _initialized = false;
+  }
+
+  /**
+   * Creates a styled button injected into the HaxBall UI. (v1)
+   *
+   * @param  {Object}   config
+   * @param  {string}   config.id      - Unique button identifier (required)
+   * @param  {string}   config.label   - Button text
+   * @param  {number}   config.x       - Left position in px
+   * @param  {number}   config.y       - Top position in px
+   * @param  {Function} config.onClick - Click handler
+   * @returns {Object} button handle { id, destroy }
+   */
+  function createButton(config) {
+    _ensureInit();
+    return ButtonInjector.create(config, RootMount.getRoot());
+  }
+
+  /**
+   * Destroys an injected button by id. (v1)
+   * No-op if not found.
+   *
+   * @param {string} id
+   */
+  function destroyButton(id) {
+    ButtonInjector.destroy(id);
   }
 
   // ─── Diagnostics ──────────────────────────────────────────────────────────
@@ -178,6 +205,8 @@ var HaxUI = (function () {
     getWindow:     getWindow,
     destroyWindow: destroyWindow,
     destroyAll:    destroyAll,
+    createButton:  createButton,
+    destroyButton: destroyButton,
     diagnostics:   diagnostics
   });
 
