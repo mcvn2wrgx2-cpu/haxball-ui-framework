@@ -11,6 +11,10 @@
 //   NAMESPACE_MODE — Shadow DOM unavailable. CSS scoped via attribute selector
 //                    [data-haxui-window] * as a fallback.
 //
+// THEMES (v1):
+//   default  — neutral dark palette from v0
+//   haxball  — exact replica of HaxBall's native .dialog style
+//
 // INTERNAL USE:
 //   Consumed by RootMount, WindowManager, StyleManager, and EventGuard.
 //   Not part of the public HaxUI API — users configure via HaxUI.init().
@@ -98,6 +102,55 @@ var HaxUIConfig = (function () {
   // Key stored on WindowHandle instances to track destruction state.
   var DESTROYED_FLAG = '_destroyed';
 
+  // ─── Themes (v1) ─────────────────────────────────────────────────────────
+
+  // Available theme names for createWindow({ theme }).
+  var THEMES = Object.freeze({
+    DEFAULT: 'default',   // neutral dark palette (v0 style)
+    HAXBALL: 'haxball'    // exact replica of HaxBall's native .dialog
+  });
+
+  // HaxBall theme values extracted directly from the live DOM.
+  // Update these if HaxBall changes its styles.
+  var HAXBALL_THEME = Object.freeze({
+    background:       'rgb(26, 33, 37)',
+    borderRadius:     '5px',
+    fontFamily:       '"Open Sans", sans-serif',
+    fontSize:         '14px',
+    color:            'rgb(255, 255, 255)',
+    headerBorder:     '3px solid rgb(193, 53, 53)',
+    headerBackground: 'transparent',
+    buttonBackground: 'rgb(36, 73, 103)',
+    buttonColor:      'rgb(255, 255, 255)',
+    buttonBorder:     '1px solid rgb(255, 255, 255)',
+    buttonRadius:     '3px',
+    shadow:           '0 8px 32px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5)'
+  });
+
+  // ─── Drag & resize (v1) ──────────────────────────────────────────────────
+
+  // Minimum window dimensions enforced by ResizeManager.
+  var MIN_WIDTH  = 150;   // px
+  var MIN_HEIGHT = 80;    // px
+
+  // Size in px of the resize handle corners.
+  var RESIZE_HANDLE_SIZE = 10;   // px
+
+  // Attribute added to resize handle elements.
+  var RESIZE_ATTR = 'data-haxui-resize';
+
+  // During drag/resize, user-select is disabled on body to prevent
+  // accidental text selection. This is the value it's set to.
+  var NO_SELECT_STYLE = 'none';
+
+  // ─── Button injector (v1) ────────────────────────────────────────────────
+
+  // Attribute added to injected button elements.
+  var BUTTON_ATTR = 'data-haxui-button';
+
+  // ID prefix for injected buttons — avoids collisions with HaxBall IDs.
+  var BUTTON_ID_PREFIX = 'haxui-btn-';
+
   // ─── Public surface ──────────────────────────────────────────────────────
 
   return Object.freeze({
@@ -114,7 +167,17 @@ var HaxUIConfig = (function () {
     CONTEXT_RETRY_INTERVAL,
     CONTEXT_RETRY_LIMIT,
     INTERACTIVE_TAGS,
-    DESTROYED_FLAG
+    DESTROYED_FLAG,
+    // v1
+    THEMES,
+    HAXBALL_THEME,
+    MIN_WIDTH,
+    MIN_HEIGHT,
+    RESIZE_HANDLE_SIZE,
+    RESIZE_ATTR,
+    NO_SELECT_STYLE,
+    BUTTON_ATTR,
+    BUTTON_ID_PREFIX
   });
 
 })();
