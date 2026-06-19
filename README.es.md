@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="banner.png" alt="HaxBall UI Framework Banner" width="100%" />
+  <img src="assets/banner.png" alt="HaxBall UI Framework Banner" width="100%" />
 </p>
 
 # haxball-ui-framework en Español
