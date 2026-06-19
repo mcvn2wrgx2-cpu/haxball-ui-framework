@@ -240,9 +240,10 @@ function onLeaveRoom() {
   - [x] Shadow DOM isolation with CSS fallback
   - [x] Event isolation from the game
   - [x] DOM re-anchor on HaxBall transitions
-- [ ] **v1 — Interaction**
-  - [ ] Drag & drop windows
-  - [ ] Resize from edges
+- [x] **v1 — Interaction**
+  - [x] Drag & drop windows
+  - [x] Resize from edges
+  - [x] Button Native
 - [ ] **v2 — Components**
   - [ ] Component system for `setContent()`
   - [ ] Base components: text, table, list, button
