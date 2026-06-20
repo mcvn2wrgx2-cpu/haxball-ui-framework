@@ -89,10 +89,28 @@ var Window = (function () {
       // Header
       var header = document.createElement('div');
       header.setAttribute(HaxUIConfig.HEADER_ATTR, '');
+      header.style.cssText = 'display: flex; align-items: center; justify-content: space-between;';
 
       var titleSpan = document.createElement('span');
       titleSpan.textContent = title;
       header.appendChild(titleSpan);
+
+      // Drag indicator (v1.1) — small icon showing whether the window
+      // can be moved or is fixed in place. Purely informational, no
+      // click behavior of its own.
+      var dragIndicator = document.createElement('span');
+      dragIndicator.setAttribute('data-haxui-drag-indicator', '');
+      dragIndicator.textContent = draggable ? '✛' : '📌';
+      dragIndicator.title       = draggable ? 'Draggable' : 'Static';
+      dragIndicator.style.cssText = [
+        'all: unset',
+        'font-size: 11px',
+        'opacity: 0.5',
+        'margin-left: 8px',
+        'cursor: ' + (draggable ? 'grab' : 'default'),
+        'user-select: none',
+      ].join('; ');
+      header.appendChild(dragIndicator);
 
       // Hide header if titleVisible is false
       if (!titleVisible) {
