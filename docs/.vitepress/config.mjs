@@ -26,10 +26,6 @@ export default {
           {
             text: "Architecture",
             link: "/architecture"
-          },
-          {
-            text: "Examples",
-            link: "/examples"
           }
         ]
       },
@@ -48,6 +44,10 @@ export default {
           {
             text: "Button",
             link: "/api/button"
+          },
+          {
+            text: "Themes",
+            link: "/guides/themes"
           }
         ]
       },
@@ -55,10 +55,6 @@ export default {
       {
         text: "Advanced",
         items: [
-          {
-            text: "Themes",
-            link: "/guides/themes"
-          },
           {
             text: "Roadmap",
             link: "/roadmap"
