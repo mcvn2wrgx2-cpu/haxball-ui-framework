@@ -6,13 +6,30 @@ Lightweight and extensible UI framework for HaxBall.
 
 - Shadow DOM isolation
 - Window lifecycle management
-- Drag & resize
+- Drag & resize support
 - Native HaxBall theme
-- Native button injection
+- Button injection system
+- Modular architecture
 
 ## Quick Example
 
 ```js
 const win = HaxUI.createWindow({
-  title: "Hello World"
+  title: "Hello World",
+  width: 400,
+  height: 250
 });
+
+win.show();
+```
+
+## Documentation
+
+- Getting Started
+- Architecture
+- API Reference
+- Examples
+
+## Why HaxBall UI Framework?
+
+Designed specifically for HaxBall developers who need a modern, reusable and maintainable UI layer without dealing with raw DOM complexity.
