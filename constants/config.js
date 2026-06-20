@@ -151,6 +151,12 @@ var HaxUIConfig = (function () {
   // ID prefix for injected buttons — avoids collisions with HaxBall IDs.
   var BUTTON_ID_PREFIX = 'haxui-btn-';
 
+  // Retry interval/limit for finding .header-btns when it's not yet mounted.
+  // Same pattern as RootMount's canvas detection — polling is more reliable
+  // than a single MutationObserver firing at the exact right moment.
+  var BUTTON_RETRY_INTERVAL = 300;   // ms
+  var BUTTON_RETRY_LIMIT    = 30;    // 30 × 300ms = 9 seconds total
+
   // ─── Public surface ──────────────────────────────────────────────────────
 
   return Object.freeze({
@@ -177,7 +183,9 @@ var HaxUIConfig = (function () {
     RESIZE_ATTR,
     NO_SELECT_STYLE,
     BUTTON_ATTR,
-    BUTTON_ID_PREFIX
+    BUTTON_ID_PREFIX,
+    BUTTON_RETRY_INTERVAL,
+    BUTTON_RETRY_LIMIT
   });
 
 })();
