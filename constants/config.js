@@ -122,7 +122,7 @@ var HaxUIConfig = (function () {
     headerBackground: 'transparent',
     buttonBackground: 'rgb(36, 73, 103)',
     buttonColor:      'rgb(255, 255, 255)',
-    buttonBorder:     '1px solid rgb(255, 255, 255)',
+    buttonBorder:     '0',
     buttonRadius:     '3px',
     shadow:           '0 8px 32px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5)'
   });
