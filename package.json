@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Minimal UI framework for HaxBall client overlays",
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
