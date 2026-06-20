@@ -1,19 +1,22 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // core/ResizeManager.js
 //
-// Corner resize handles for HaxUI windows. (v1)
+// Corner resize handles for HaxUI windows. (v1.1)
 //
-// Injects 4 corner handles into the window container.
-// Each handle tracks mousedown → mousemove → mouseup on document
-// and adjusts width/height (and left/top for NW/NE/SW corners).
+// Same root cause and fix as DragManager: EventGuard's stopPropagation()
+// on the container's bubble-phase 'mouseup' listener can prevent a
+// bubble-phase document listener from firing. mousemove/mouseup here are
+// attached in the CAPTURE phase so resize always releases on mouseup,
+// regardless of where the cursor ends up relative to the container.
 //
-// Minimum dimensions are enforced via HaxUIConfig.MIN_WIDTH / MIN_HEIGHT.
-// All listeners go through EventRegistry for clean teardown.
+// mousemove/mouseup are attached/removed manually per resize cycle,
+// NOT through EventRegistry — they must be temporary, not lifetime-bound.
 // ─────────────────────────────────────────────────────────────────────────────
 
 var ResizeManager = (function () {
 
-  // Corner definitions: which edges each handle controls
+  var CAPTURE = true;
+
   var CORNERS = [
     { id: 'se', bottom: 0, right: 0,  cursor: 'se-resize', dx: 1,  dy: 1,  dl: 0,  dt: 0  },
     { id: 'sw', bottom: 0, left: 0,   cursor: 'sw-resize', dx: -1, dy: 1,  dl: 1,  dt: 0  },
@@ -34,7 +37,6 @@ var ResizeManager = (function () {
 
     CORNERS.forEach(function (corner) {
 
-      // Build the handle element
       var handle = document.createElement('div');
       handle.setAttribute(HaxUIConfig.RESIZE_ATTR, corner.id);
       handle.style.cssText = [
@@ -49,9 +51,47 @@ var ResizeManager = (function () {
 
       container.appendChild(handle);
 
-      // Per-drag state
       var _resizing = false;
       var _startX, _startY, _startW, _startH, _startL, _startT;
+
+      function _release() {
+        if (!_resizing) return;
+        _resizing = false;
+        document.body.style.userSelect = '';
+
+        document.removeEventListener('mousemove',  _onMouseMove, CAPTURE);
+        document.removeEventListener('mouseup',    _onMouseUp,   CAPTURE);
+        document.removeEventListener('mouseleave', _onMouseUp,   CAPTURE);
+      }
+
+      function _onMouseMove(e) {
+        if (!_resizing) return;
+
+        var dx = e.clientX - _startX;
+        var dy = e.clientY - _startY;
+
+        var newW = _startW + dx * corner.dx;
+        var newH = _startH + dy * corner.dy;
+
+        newW = Math.max(newW, HaxUIConfig.MIN_WIDTH);
+        newH = Math.max(newH, HaxUIConfig.MIN_HEIGHT);
+
+        container.style.width  = newW + 'px';
+        container.style.height = newH + 'px';
+
+        if (corner.dl) {
+          var clampedDx = _startW - newW;
+          container.style.left = (_startL - clampedDx) + 'px';
+        }
+        if (corner.dt) {
+          var clampedDy = _startH - newH;
+          container.style.top  = (_startT - clampedDy) + 'px';
+        }
+      }
+
+      function _onMouseUp() {
+        _release();
+      }
 
       function _onMouseDown(e) {
         if (e.button !== 0) return;
@@ -66,49 +106,16 @@ var ResizeManager = (function () {
 
         document.body.style.userSelect = HaxUIConfig.NO_SELECT_STYLE;
 
+        // CAPTURE phase — same fix as DragManager
+        document.addEventListener('mousemove',  _onMouseMove, CAPTURE);
+        document.addEventListener('mouseup',    _onMouseUp,   CAPTURE);
+        document.addEventListener('mouseleave', _onMouseUp,   CAPTURE);
+
         e.stopPropagation();
         e.preventDefault();
       }
 
-      function _onMouseMove(e) {
-        if (!_resizing) return;
-
-        var dx = e.clientX - _startX;
-        var dy = e.clientY - _startY;
-
-        var newW = _startW + dx * corner.dx;
-        var newH = _startH + dy * corner.dy;
-
-        // Enforce minimum dimensions
-        newW = Math.max(newW, HaxUIConfig.MIN_WIDTH);
-        newH = Math.max(newH, HaxUIConfig.MIN_HEIGHT);
-
-        container.style.width  = newW + 'px';
-        container.style.height = newH + 'px';
-
-        // Corners that pull left/top need position adjustment
-        if (corner.dl) {
-          var clampedDx = _startW - newW;   // negative if growing left
-          container.style.left = (_startL - clampedDx) + 'px';
-        }
-        if (corner.dt) {
-          var clampedDy = _startH - newH;
-          container.style.top  = (_startT - clampedDy) + 'px';
-        }
-
-        e.stopPropagation();
-      }
-
-      function _onMouseUp(e) {
-        if (!_resizing) return;
-        _resizing = false;
-        document.body.style.userSelect = '';
-        e.stopPropagation();
-      }
-
-      registry.add(handle,    'mousedown', _onMouseDown);
-      registry.add(document,  'mousemove', _onMouseMove);
-      registry.add(document,  'mouseup',   _onMouseUp);
+      registry.add(handle, 'mousedown', _onMouseDown);
     });
   }
 
