@@ -1,9 +1,11 @@
 export default {
+  base: "/haxball-ui-framework/",
+
   title: "HaxBall UI Framework",
   description: "Lightweight and extensible UI framework for HaxBall.",
 
   themeConfig: {
-    logo: "/banner.png",
+    logo: "/haxball-ui-framework/banner.png",
 
     nav: [
       { text: "Getting Started", link: "/getting-started" },
