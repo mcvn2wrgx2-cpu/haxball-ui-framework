@@ -5,8 +5,5 @@
   "scripts": {
     "build": "node build.js"
   },
-  "license": "MIT",
-  "devDependencies": {
-    "vitepress": "^1.6.4"
-  }
+  "license": "MIT"
 }
