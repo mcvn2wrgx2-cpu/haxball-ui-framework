@@ -1,0 +1,1 @@
+import{_ as a,o as i,c as e,a0 as t}from"./chunks/framework.Bogozrur.js";const o=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"api/themes.md","filePath":"api/themes.md"}'),n={name:"api/themes.md"};function l(h,s,p,k,E,r){return i(),e("div",null,[...s[0]||(s[0]=[t("",3)])])}const c=a(n,[["render",l]]);export{o as __pageData,c as default};
