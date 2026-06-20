@@ -2,7 +2,7 @@
   <img src="assets/banner.png" alt="HaxBall UI Framework Banner" width="100%" />
 </p>
 
-# haxball-ui-framework en Español
+# haxball-ui-framework
 
 <p align="center">
   <a href="README.md">🇺🇸 English</a> | 🇪🇸 Español
@@ -17,6 +17,9 @@
 </a>
 <a href="#estructura-del-proyecto">
   <img src="https://img.shields.io/badge/vanilla-JavaScript-f7df1e.svg?style=flat-square&logo=javascript&logoColor=black" alt="Vanilla JS">
+</a>
+<a href="#hoja-de-ruta">
+  <img src="https://img.shields.io/badge/version-v1-2ecc71.svg?style=flat-square" alt="Version v1">
 </a>
 <a href="#estructura-del-proyecto">
   <img src="https://img.shields.io/badge/contributions-welcome-000000.svg?style=flat-square&logo=git&logoColor=white" alt="Contributions Welcome">
@@ -39,6 +42,7 @@ HaxBall UI Framework introduce una **capa de overlay liviana** sobre el DOM de H
 - destrucción limpia con ciclo de vida completo
 - aislamiento total de CSS via Shadow DOM
 - manejo seguro de eventos que no se filtran al juego
+- drag & resize, botones con estilo nativo, y un tema que replica la UI de HaxBall
 
 Todo está construido alrededor de un principio:
 
@@ -48,14 +52,22 @@ Todo está construido alrededor de un principio:
 
 ## ⚙️ Arquitectura
 
-El framework se divide en 4 capas:
+El framework se divide en capas, cada una con una sola responsabilidad:
 
-| Capa | Responsabilidad |
-| :--- | :--- |
-| **RootMount** | Detecta el contexto de ejecución, ancla `#haxui-root` a `document.body`, re-ancla si HaxBall limpia el DOM |
-| **Core** | `WindowManager`, `Window`, `EventGuard`, `StyleManager`, `EventRegistry` |
-| **API pública** | `window.HaxUI` — el único nombre global expuesto |
-| **WindowHandle** | Objeto liviano retornado por ventana — no expone internals |
+| Capa | Módulo | Responsabilidad |
+| :--- | :--- | :--- |
+| **Bootstrap** | `RootMount` | Detecta el contexto de ejecución, ancla `#haxui-root` a `document.body`, re-ancla si HaxBall limpia el DOM |
+| **Registro** | `WindowManager` | Registro de ventanas, ciclo de vida, y stack de z-index |
+| **Instancia** | `Window` | Construye el árbol DOM de una ventana, dueña de su Shadow Root |
+| **Seguridad** | `EventGuard` | Política por tipo de evento para que los eventos de ventana nunca se filtren al juego |
+| **Seguridad** | `EventRegistry` | Rastrea cada listener para que `destroy()` limpie sin memory leaks |
+| **Estilo** | `StyleManager` | Inyecta estilos base por tema en cada Shadow Root |
+| **Contenido** | `Sanitize` | Sanitización basada en DOMParser — los strings nunca llegan crudos a `innerHTML` |
+| **Interacción** | `DragManager` | Arrastra ventanas desde el header, limitado al viewport |
+| **Interacción** | `ResizeManager` | Redimensiona desde cualquiera de las 4 esquinas, con tamaño mínimo |
+| **Integración** | `ButtonInjector` | Inyecta botones con estilo nativo en la barra de botones de HaxBall |
+| **API pública** | `HaxUI` | `window.HaxUI` — el único nombre global expuesto |
+| **Handle** | `WindowHandle` | Objeto liviano retornado por ventana — no expone internals |
 
 ---
 
@@ -66,21 +78,25 @@ haxball-ui-framework/
 │
 ├── core/
 │   ├── HaxUI.js            # Punto de entrada de la API pública
-│   ├── WindowManager.js    # Registro y ciclo de vida de ventanas
+│   ├── WindowManager.js    # Registro de ventanas, ciclo de vida, z-index
 │   ├── Window.js           # Ventana individual con Shadow DOM
 │   ├── RootMount.js        # Nodo raíz, detección de contexto, re-anclaje
 │   ├── EventGuard.js       # Política por tipo de evento para aislar el juego
-│   ├── StyleManager.js     # Estilos base inyectados en cada Shadow Root
-│   └── EventRegistry.js    # Registro de listeners para destroy() limpio
+│   ├── EventRegistry.js    # Registro de listeners para destroy() limpio
+│   ├── StyleManager.js     # Estilos por tema inyectados en cada Shadow Root
+│   ├── DragManager.js      # Drag desde el header, limitado al viewport (v1)
+│   ├── ResizeManager.js    # Handles de resize en las esquinas (v1)
+│   └── ButtonInjector.js   # Inyección de botones con estilo nativo de HaxBall (v1)
 │
 ├── constants/
-│   └── config.js           # BASE_Z_INDEX, namespace, modos de operación
+│   └── config.js           # BASE_Z_INDEX, temas, namespace, modos de operación
 │
 ├── utils/
 │   └── sanitize.js         # Wrapper de DOMParser para setContent() seguro
 │
 ├── dev/
-│   └── playground.js       # Pruebas manuales y ejemplos en consola
+│   ├── playground.js       # 13 grupos de tests, 70+ assertions
+│   └── examples.js         # 5 ejemplos trabajados (scoreboard, roster, chat, admin panel, dashboard)
 │
 ├── build.js                # Concatena los módulos en un bundle IIFE único
 ├── package.json
@@ -115,6 +131,13 @@ Pegar el contenido de `haxball-ui.bundle.js` directamente en la consola del brow
 **Opción B — Tampermonkey** (recomendado):
 Crear un userscript con `@require file:///ruta/absoluta/a/haxball-ui.bundle.js` y activar el acceso a archivos locales en la configuración de Tampermonkey.
 
+### 4. Verificar que cargó
+
+```js
+HaxUI.diagnostics();
+// { initialized: false, mode: null, rootPresent: false, windowCount: 0, baseZ: 9000, version: 'v0' }
+```
+
 ---
 
 ## 🧩 API Pública
@@ -136,7 +159,13 @@ const win = HaxUI.createWindow({
   height: 180,
   x: 16,
   y: 16,
-  content: '<p>Cargando...</p>'
+  content: '<p>Cargando...</p>',
+
+  // v1
+  theme: 'default',     // 'default' | 'haxball'
+  draggable: true,      // arrastrable desde el header
+  resizable: true,      // redimensionable desde cualquier esquina
+  titleVisible: true    // mostrar/ocultar el header al crearla
 });
 ```
 
@@ -152,11 +181,14 @@ win.setContent(node);
 win.setContent('<p>Partida terminada</p>');
 ```
 
-### Mostrar / ocultar
+### Mostrar / ocultar / título (v1)
 
 ```js
 win.show();
 win.hide();
+
+win.hideTitle();   // colapsa el header, el contenido ocupa toda la ventana
+win.showTitle();
 ```
 
 ### Destruir
@@ -181,6 +213,48 @@ if (existing) {
 // getWindow() retorna null si no existe — nunca lanza
 ```
 
+### Botones con estilo nativo (v1)
+
+```js
+const btn = HaxUI.createButton({
+  id: 'stats-btn',
+  label: '📊 Stats',
+  onClick: () => win.show()
+});
+
+btn.destroy();
+// o
+HaxUI.destroyButton('stats-btn');
+```
+
+`createButton()` inyecta directamente dentro del contenedor `.header-btns` de
+HaxBall, apareciendo en línea junto a los botones nativos Rec / Link / Leave.
+Si ese contenedor todavía no está montado, el botón usa un overlay fijo como
+fallback y un `MutationObserver` lo reinyecta en el momento en que la UI de
+HaxBall esté disponible.
+
+---
+
+## 🎨 El tema `haxball`
+
+`theme: 'haxball'` replica el estilo nativo del `.dialog` de HaxBall usando
+valores extraídos directamente del DOM en vivo (fondo, border-radius, línea
+de acento del header, fuente, colores de botones) — para que una ventana de
+HaxUI pueda verse indistinguible de uno de los diálogos propios de HaxBall:
+
+```js
+HaxUI.createWindow({
+  id: 'confirm',
+  title: '¿Salir de la sala?',
+  theme: 'haxball',
+  width: 300,
+  height: 150,
+  x: 100,
+  y: 100,
+  content: '<p>¿Estás seguro de que quieres salir de la sala?</p><button>Salir</button>'
+});
+```
+
 ---
 
 ## 🔒 Decisiones de Diseño
@@ -197,6 +271,9 @@ Cada decisión responde a un riesgo concreto del entorno HaxBall.
 | `DOMParser` en `setContent()` | XSS al renderizar strings externos (nombres de jugadores, chat) |
 | Flag `WindowHandle._destroyed` | Llamadas seguras post-destroy — sin errores dentro de callbacks del juego |
 | Detección de contexto en `RootMount.init()` | Script inyectado en el frame equivocado (entornos con iframe) |
+| Listeners de drag adjuntados/removidos por ciclo, fuera de `EventRegistry` | Los listeners del registro persisten durante toda la vida de la ventana — usarlos para el drag hacía que el cursor nunca se soltara |
+| `ButtonInjector` apunta a `.header-btns` con fallback de `MutationObserver` | La barra de botones nativa todavía no está montada cuando corre el script |
+| `buttonBorder: '0'` en el tema haxball | Los botones nativos de HaxBall no tienen borde — verificado con `getComputedStyle()` sobre el DOM en vivo, no asumido |
 
 ---
 
@@ -230,6 +307,10 @@ function onLeaveRoom() {
 }
 ```
 
+Más ejemplos trabajados — scoreboard en vivo, roster de jugadores, chat log,
+panel de administración, y un dashboard completo con múltiples ventanas —
+están en [`dev/examples.js`](dev/examples.js).
+
 ---
 
 ## 🗺️ Hoja de Ruta
@@ -242,21 +323,23 @@ function onLeaveRoom() {
   - [x] Re-anclaje del DOM en transiciones de HaxBall
 - [x] **v1 — Interacción**
   - [x] Ventanas arrastrables (drag & drop)
-  - [x] Redimensionar desde los bordes
-  - [x] Botones Nativos
+  - [x] Redimensionado desde las cuatro esquinas
+  - [x] Botones con estilo nativo de HaxBall (`createButton`)
+  - [x] Tema `haxball` que replica el `.dialog` nativo
+  - [x] `hideTitle()` / `showTitle()`
 - [ ] **v2 — Componentes**
   - [ ] Sistema de componentes para `setContent()`
   - [ ] Componentes base: texto, tabla, lista, botón
 - [ ] **v3 — Plugins**
   - [ ] Registro de plugins con `HaxUI.use(plugin)`
   - [ ] Hooks del ciclo de vida de ventanas para plugins
-  - [ ] Hornear un Pastel
+  - [ ] Cocinar un Pastel
 
 ---
 
 ## ⚠️ Estado
 
-> **Estado del proyecto:** v0 — arquitectura core estable, las APIs pueden seguir evolucionando.
+> **Estado del proyecto:** v1 — drag, resize, botones nativos, y el tema HaxBall son estables. La API pública puede seguir creciendo hacia v2, pero el contrato de v0 está congelado y no se rompe.
 
 ---
 
@@ -264,8 +347,8 @@ function onLeaveRoom() {
 
 - superficie mínima de API, máximo control
 - un nombre global, ningún internal expuesto
-- cada decisión trazable a un riesgo real del entorno HaxBall
-- extensible a v1–v3 sin romper el contrato de API del v0
+- cada decisión trazable a un riesgo real del entorno HaxBall, verificado contra el DOM en vivo
+- extensible a v2–v3 sin romper el contrato de API de v0/v1
 
 ---
 
