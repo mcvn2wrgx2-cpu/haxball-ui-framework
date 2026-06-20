@@ -1,0 +1,6 @@
+show()
+hide()
+destroy()
+setContent()
+showTitle()
+hideTitle()
