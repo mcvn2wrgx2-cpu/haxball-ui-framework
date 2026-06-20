@@ -1,1 +1,0 @@
-import{_ as e,o as l,c as d,a0 as n}from"./chunks/framework.Bogozrur.js";const f=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"philosophy.md","filePath":"philosophy.md"}'),o={name:"philosophy.md"};function a(i,t,s,r,c,g){return l(),d("div",null,[...t[0]||(t[0]=[n("",7)])])}const h=e(o,[["render",a]]);export{f as __pageData,h as default};
