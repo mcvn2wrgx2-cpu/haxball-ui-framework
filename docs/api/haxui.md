@@ -1,0 +1,7 @@
+HaxUI.init()
+HaxUI.createWindow()
+HaxUI.destroyWindow()
+HaxUI.destroyAll()
+HaxUI.getWindow()
+HaxUI.createButton()
+HaxUI.diagnostics()
