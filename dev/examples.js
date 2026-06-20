@@ -1,9 +1,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // dev/examples.js
 //
-// Worked examples for HaxBall UI Framework v0.
+// Worked examples for HaxBall UI Framework v1.
 // Paste each example individually into the browser console while HaxBall
 // is open and the bundle has already been injected.
+//
+// REQUIRED FIRST STEP — every time:
+//   1. Paste the FULL contents of haxball-ui.bundle.js into the console.
+//   2. Run: HaxUI.diagnostics()
+//      It must return an object, NOT throw "HaxUI is not defined".
+//      If it throws, the bundle did not load — re-paste it.
+//   3. Only then paste an example block below.
+//
+// NOTE: reloading the page (F5, navigating, leaving/rejoining a room via
+// full page reload) wipes ALL console state, including window.HaxUI.
+// The bundle must be re-pasted after any page reload — this is normal
+// browser behavior, not a bug in the framework.
 //
 // EXAMPLES:
 //   [E01] Live scoreboard
@@ -12,6 +24,16 @@
 //   [E04] Admin panel
 //   [E05] Multi-window dashboard
 // ─────────────────────────────────────────────────────────────────────────────
+
+if (typeof HaxUI === 'undefined') {
+  console.error(
+    '[HaxUI Examples] HaxUI is not defined. ' +
+    'Paste the full contents of haxball-ui.bundle.js into this console FIRST, ' +
+    'then run HaxUI.diagnostics() to confirm it loaded, then paste an example.'
+  );
+  throw new Error('[HaxUI Examples] Aborting — HaxUI not loaded. See message above.');
+}
+
 
 
 // ─── [E01] Live scoreboard ────────────────────────────────────────────────────
@@ -308,3 +330,42 @@ dash_diag.setContent(diagNode);
 console.log('[HaxUI] Dashboard ready —', HaxUI.diagnostics());
 
 // Destroy all with: HaxUI.destroyAll()
+
+
+// ─── [E06] Button that opens a window + static window ────────────────────────
+// Demonstrates onOpenWindow (no manual onClick + createWindow wiring needed)
+// and draggable: false (window shows a 📌 pin instead of ✛ in the header).
+
+HaxUI.destroyAll();
+
+// A static (non-draggable) window with the haxball theme
+HaxUI.createWindow({
+  id:        'pinned-info',
+  title:     'Server Info',
+  theme:     'haxball',
+  draggable: false,
+  width:     220,
+  height:    100,
+  x:         20,
+  y:         20,
+  content:   '<p>This window is pinned — try dragging it, it won\'t move.</p>'
+});
+
+// A button that opens/shows a window on click — no onClick needed
+HaxUI.createButton({
+  id:    'open-stats-btn',
+  label: '📊 Open Stats',
+  onOpenWindow: {
+    id:      'quick-stats',
+    title:   'Quick Stats',
+    theme:   'haxball',
+    width:   240,
+    height:  140,
+    x:       260,
+    y:       20,
+    content: '<p>Goals: 3<br>Possession: 58%</p>'
+  }
+});
+
+// Click the button multiple times — it creates the window once,
+// then just shows it again on every subsequent click.
