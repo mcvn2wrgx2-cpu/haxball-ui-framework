@@ -1,19 +1,40 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // core/DragManager.js
 //
-// Drag & drop for HaxUI windows. (v1)
+// Drag & drop for HaxUI windows. (v1.1)
 //
-// FIX: mousemove and mouseup listeners are registered and removed manually
-// inside each drag cycle — NOT through EventRegistry. This is intentional:
-// EventRegistry listeners persist for the window's full lifetime and are
-// only removed on destroy(). Drag listeners must be temporary — attached
-// on mousedown and removed on mouseup. Putting them in the registry caused
-// the window to never release the drag.
+// ROOT CAUSE OF THE "drag never releases" BUG:
+//   EventGuard registers a 'mouseup' listener directly on the window
+//   container that calls e.stopPropagation() (to stop clicks from
+//   reaching the game). When the user releases the mouse while the
+//   cursor is over the container — which is almost always the case
+//   while dragging — that listener fires during the BUBBLING phase
+//   and stops the event before it can bubble up to the 'mouseup'
+//   listener DragManager attached on `document`. The drag's internal
+//   _dragging flag never gets reset, so the window appears "stuck".
 //
-// Only the header mousedown goes through EventRegistry (it lives forever).
+// FIX:
+//   DragManager's mousemove/mouseup listeners on `document` are attached
+//   with the CAPTURE phase (the 3rd argument `true`). Capture-phase
+//   listeners run BEFORE bubble-phase listeners and before any
+//   stopPropagation() called during bubbling, so the drag always
+//   releases regardless of what EventGuard does on the container.
+//
+//   mousemove/mouseup are still attached/removed manually per drag cycle,
+//   NOT through EventRegistry — those listeners must be temporary.
+//
+// NEW (v1.1):
+//   config.draggable can now be:
+//     true   — window can be dragged (default)
+//     false  — window is static, header shows a "static" indicator
+//   Window.js passes this through; DragManager just needs to not be
+//   called when draggable is false (handled in Window.js).
 // ─────────────────────────────────────────────────────────────────────────────
 
 var DragManager = (function () {
+
+  // useCapture = true for all temporary document-level drag listeners
+  var CAPTURE = true;
 
   /**
    * Enables drag on a window.
@@ -29,13 +50,24 @@ var DragManager = (function () {
     var _offsetX  = 0;
     var _offsetY  = 0;
 
+    function _release() {
+      if (!_dragging) return;
+      _dragging = false;
+
+      handle.style.cursor            = 'grab';
+      document.body.style.userSelect = '';
+
+      document.removeEventListener('mousemove', _onMouseMove, CAPTURE);
+      document.removeEventListener('mouseup',   _onMouseUp,   CAPTURE);
+      document.removeEventListener('mouseleave', _onMouseUp,  CAPTURE);
+    }
+
     function _onMouseMove(e) {
       if (!_dragging) return;
 
       var newX = e.clientX - _offsetX;
       var newY = e.clientY - _offsetY;
 
-      // Clamp inside viewport
       var maxX = window.innerWidth  - container.offsetWidth;
       var maxY = window.innerHeight - container.offsetHeight;
       newX = Math.max(0, Math.min(newX, maxX));
@@ -43,23 +75,10 @@ var DragManager = (function () {
 
       container.style.left = newX + 'px';
       container.style.top  = newY + 'px';
-
-      e.stopPropagation();
     }
 
-    function _onMouseUp(e) {
-      if (!_dragging) return;
-      _dragging = false;
-
-      // Restore cursor and selection
-      handle.style.cursor          = 'grab';
-      document.body.style.userSelect = '';
-
-      // Remove temporary listeners manually — not through registry
-      document.removeEventListener('mousemove', _onMouseMove);
-      document.removeEventListener('mouseup',   _onMouseUp);
-
-      e.stopPropagation();
+    function _onMouseUp() {
+      _release();
     }
 
     function _onMouseDown(e) {
@@ -74,16 +93,18 @@ var DragManager = (function () {
       handle.style.cursor            = 'grabbing';
       document.body.style.userSelect = HaxUIConfig.NO_SELECT_STYLE;
 
-      // Attach temporary listeners directly on document
-      // These are removed in _onMouseUp — never go through registry
-      document.addEventListener('mousemove', _onMouseMove);
-      document.addEventListener('mouseup',   _onMouseUp);
+      // CAPTURE phase: runs before EventGuard's bubble-phase stopPropagation
+      // on the container, so the drag always releases on mouseup.
+      document.addEventListener('mousemove',  _onMouseMove, CAPTURE);
+      document.addEventListener('mouseup',    _onMouseUp,   CAPTURE);
+      // Safety net: if the mouse leaves the browser window entirely
+      // (e.g. dragged outside the viewport) mouseup may never fire.
+      document.addEventListener('mouseleave', _onMouseUp,   CAPTURE);
 
       e.stopPropagation();
       e.preventDefault();
     }
 
-    // Only mousedown on the header is permanent — goes through registry
     registry.add(handle, 'mousedown', _onMouseDown);
 
     handle.style.cursor = 'grab';
