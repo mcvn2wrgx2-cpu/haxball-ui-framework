@@ -170,7 +170,7 @@ var StyleManager = (function () {
       '  display: inline-block;',
       '  box-sizing: border-box;',
       '  background: ' + t.buttonBackground + ';',
-      '  border: ' + t.buttonBorder + ';',
+      '  border: 0;',
       '  border-radius: ' + t.buttonRadius + ';',
       '  padding: 6px 18px;',
       '  color: ' + t.buttonColor + ';',
