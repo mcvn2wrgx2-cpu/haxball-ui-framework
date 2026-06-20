@@ -116,14 +116,14 @@ var HaxUIConfig = (function () {
     background:       'rgb(26, 33, 37)',
     borderRadius:     '5px',
     fontFamily:       '"Open Sans", sans-serif',
-    fontSize:         '14px',
+    fontSize:         '15px',
     color:            'rgb(255, 255, 255)',
     headerBorder:     '3px solid rgb(193, 53, 53)',
     headerBackground: 'transparent',
     buttonBackground: 'rgb(36, 73, 103)',
     buttonColor:      'rgb(255, 255, 255)',
     buttonBorder:     '0',
-    buttonRadius:     '3px',
+    buttonRadius:     '5px',
     shadow:           '0 8px 32px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5)'
   });
 
