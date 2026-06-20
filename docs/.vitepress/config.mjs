@@ -47,7 +47,7 @@ export default {
           },
           {
             text: "Themes",
-            link: "/guides/themes"
+            link: "/api/themes"
           }
         ]
       },
