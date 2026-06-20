@@ -52,6 +52,7 @@ var Window = (function () {
     var draggable    = config.draggable    !== false;   // default true
     var resizable    = config.resizable    !== false;   // default true
     var titleVisible = config.titleVisible !== false;   // default true
+    var closable     = config.closable     !== false;   // default true
 
     // ─── Internal state ───────────────────────────────────────────────────
 
@@ -95,22 +96,64 @@ var Window = (function () {
       titleSpan.textContent = title;
       header.appendChild(titleSpan);
 
+      // Header-right cluster: drag indicator + close button.
+      // Both carry data-haxui-no-drag so DragManager ignores mousedown
+      // on them — without this, clicking either one drags the window
+      // instead of triggering its own action.
+      var headerRight = document.createElement('div');
+      headerRight.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+
       // Drag indicator (v1.1) — small icon showing whether the window
-      // can be moved or is fixed in place. Purely informational, no
-      // click behavior of its own.
+      // can be moved or is fixed in place. Purely informational.
       var dragIndicator = document.createElement('span');
       dragIndicator.setAttribute('data-haxui-drag-indicator', '');
-      dragIndicator.textContent = draggable ? '✛' : '📌';
+      dragIndicator.setAttribute('data-haxui-no-drag', '');
+      dragIndicator.textContent = draggable ? '⠿' : '📌';
       dragIndicator.title       = draggable ? 'Draggable' : 'Static';
       dragIndicator.style.cssText = [
         'all: unset',
-        'font-size: 11px',
-        'opacity: 0.5',
-        'margin-left: 8px',
-        'cursor: ' + (draggable ? 'grab' : 'default'),
+        'font-size: 12px',
+        'opacity: 0.45',
+        'cursor: default',
         'user-select: none',
+        'line-height: 1',
       ].join('; ');
-      header.appendChild(dragIndicator);
+      headerRight.appendChild(dragIndicator);
+
+      // Close button (v1.1) — only rendered if config.closable !== false.
+      var closeBtn = null;
+      if (closable) {
+        closeBtn = document.createElement('span');
+        closeBtn.setAttribute('data-haxui-close', '');
+        closeBtn.setAttribute('data-haxui-no-drag', '');
+        closeBtn.textContent = '✕';
+        closeBtn.title       = 'Close';
+        closeBtn.style.cssText = [
+          'all: unset',
+          'font-size: 12px',
+          'opacity: 0.6',
+          'cursor: pointer',
+          'user-select: none',
+          'line-height: 1',
+          'padding: 2px 4px',
+          'border-radius: 3px',
+        ].join('; ');
+        closeBtn.addEventListener('mouseover', function () {
+          closeBtn.style.opacity = '1';
+          closeBtn.style.background = 'rgba(255,255,255,0.1)';
+        });
+        closeBtn.addEventListener('mouseout', function () {
+          closeBtn.style.opacity = '0.6';
+          closeBtn.style.background = 'transparent';
+        });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          destroy();
+        });
+        headerRight.appendChild(closeBtn);
+      }
+
+      header.appendChild(headerRight);
 
       // Hide header if titleVisible is false
       if (!titleVisible) {
