@@ -1,5 +1,8 @@
 <p align="center">
   <img src="assets/banner.png" alt="HaxBall UI Framework Banner" width="100%" />
+  <a href="https://github.com/mcvn2wrgx2-cpu/haxball-ui-framework/releases/tag/v1.0.0">
+  <img src="assets/button.png" alt="Link" width="100%">
+</a>
 </p>
 
 # haxball-ui-framework
