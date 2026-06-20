@@ -84,6 +84,14 @@ var DragManager = (function () {
     function _onMouseDown(e) {
       if (e.button !== 0) return;
 
+      // Ignore mousedown on elements explicitly marked as non-draggable
+      // (close button, drag indicator, or any future header control).
+      // Without this, clicking the close button drags the window instead
+      // of triggering its own click handler.
+      if (e.target.closest && e.target.closest('[data-haxui-no-drag]')) {
+        return;
+      }
+
       _dragging = true;
 
       var rect = container.getBoundingClientRect();
