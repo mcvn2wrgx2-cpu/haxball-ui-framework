@@ -1,24 +1,18 @@
-# HaxBall UI Framework
+# haxball-ui-framework
 
-Lightweight and extensible UI framework for creating modern HaxBall interfaces.
+Lightweight and extensible UI framework for HaxBall.
 
 ## Features
 
-* Window management
-* Modular architecture
-* Lightweight core
-* Developer-friendly API
+- Shadow DOM isolation
+- Window lifecycle management
+- Drag & resize
+- Native HaxBall theme
+- Native button injection
 
 ## Quick Example
 
 ```js
-const window = ui.createWindow({
+const win = HaxUI.createWindow({
   title: "Hello World"
 });
-```
-
-## Documentation
-
-* Getting Started
-* API Reference
-* Examples
