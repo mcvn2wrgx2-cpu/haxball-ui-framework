@@ -1,9 +1,36 @@
 {
   "name": "haxball-ui-framework",
-  "version": "0.1.0",
-  "description": "Minimal UI framework for HaxBall client overlays",
-  "scripts": {
-    "build": "node build.js"
+  "version": "1.0.1",
+  "description": "Minimal DOM-based UI framework for HaxBall client overlays — windows, drag, resize, native button injection, and the HaxBall theme.",
+  "keywords": ["haxball", "ui", "framework", "overlay", "browser", "dom"],
+  "license": "MIT",
+  "type": "module",
+  "main":   "dist/haxball-ui-framework.cjs.js",
+  "module": "dist/haxball-ui-framework.esm.js",
+  "browser": "dist/haxball-ui-framework.iife.js",
+  "exports": {
+    ".": {
+      "import":  "./dist/haxball-ui-framework.esm.js",
+      "require": "./dist/haxball-ui-framework.cjs.js",
+      "browser": "./dist/haxball-ui-framework.iife.js"
+    }
   },
-  "license": "MIT"
+  "files": [
+    "dist/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build":        "node build-esm.cjs",
+    "build:bundle": "node build.cjs",
+    "build:all":    "node build-esm.cjs && node build.cjs"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcvn2wrgx2-cpu/haxball-ui-framework"
+  }
 }
