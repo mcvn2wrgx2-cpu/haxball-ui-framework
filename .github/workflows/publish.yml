@@ -1,0 +1,36 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'   # triggers on v1.0.0, v1.0.1, v2.0.0, etc.
+
+jobs:
+  publish:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build all outputs
+        run: node build-esm.cjs
+
+      - name: Verify build succeeded
+        run: |
+          test -f dist/haxball-ui-framework.esm.js
+          test -f dist/haxball-ui-framework.cjs.js
+          test -f dist/haxball-ui-framework.iife.js
+          echo "Build OK"
+
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
