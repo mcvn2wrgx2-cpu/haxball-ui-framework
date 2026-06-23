@@ -1,0 +1,70 @@
+name: Build
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build:
+    name: Build & Verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build ESM + CJS + IIFE
+        run: node build-esm.cjs
+
+      - name: Verify ESM output exists
+        run: test -f dist/haxball-ui-framework.esm.js
+
+      - name: Verify CJS output exists
+        run: test -f dist/haxball-ui-framework.cjs.js
+
+      - name: Verify IIFE output exists
+        run: test -f dist/haxball-ui-framework.iife.js
+
+      - name: Verify public API is present in all outputs
+        run: |
+          node -e "
+          const fs = require('fs');
+          const cjs = fs.readFileSync('dist/haxball-ui-framework.cjs.js', 'utf8');
+          const esm = fs.readFileSync('dist/haxball-ui-framework.esm.js', 'utf8');
+          const iife = fs.readFileSync('dist/haxball-ui-framework.iife.js', 'utf8');
+
+          const checks = ['createWindow','getWindow','destroyWindow','destroyAll','diagnostics','DragManager','ResizeManager','ButtonInjector'];
+          let failed = false;
+
+          checks.forEach(name => {
+            if (!cjs.includes(name) || !esm.includes(name) || !iife.includes(name)) {
+              console.error('MISSING in one or more outputs: ' + name);
+              failed = true;
+            } else {
+              console.log('OK: ' + name);
+            }
+          });
+
+          if (!iife.includes('global.HaxUI = HaxUI')) { console.error('MISSING: global.HaxUI assignment in IIFE'); failed = true; }
+          if (!esm.includes('export default HaxUI'))   { console.error('MISSING: export default in ESM'); failed = true; }
+          if (!cjs.includes('module.exports = HaxUI')) { console.error('MISSING: module.exports in CJS'); failed = true; }
+
+          const cjsImports = cjs.split('\n').filter(l => /^import\s/.test(l.trim())).length;
+          if (cjsImports > 0) { console.error('RAW IMPORTS in CJS output: ' + cjsImports); failed = true; }
+
+          if (failed) process.exit(1);
+          console.log('All checks passed.');
+          "
+
+      - name: Print bundle sizes
+        run: |
+          echo "ESM:  $(wc -c < dist/haxball-ui-framework.esm.js) bytes"
+          echo "CJS:  $(wc -c < dist/haxball-ui-framework.cjs.js) bytes"
+          echo "IIFE: $(wc -c < dist/haxball-ui-framework.iife.js) bytes"
