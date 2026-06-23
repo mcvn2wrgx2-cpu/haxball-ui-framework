@@ -1,8 +1,6 @@
-<p align="center">
-  <img src="assets/bannerv1.1.png" alt="HaxBall UI Framework Banner" width="100%" />
-</p>
-
-# haxball-ui-framework
+<h1 align="center">
+  haxball-ui-framework
+</h1>
 
 <p align="center">
   <a href="README.md">🇺🇸 English</a> | 🇪🇸 Español
