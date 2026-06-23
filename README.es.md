@@ -120,9 +120,6 @@ haxball-ui-framework/
 ├── constants/
 ├── utils/
 │
-├── extensions/
-│   └── admin-panel/            # Extensión de panel de administración
-│
 ├── dev/
 │   ├── playground.js           # 13 grupos de tests, 70+ assertions
 │   └── examples.js             # 7 ejemplos trabajados
