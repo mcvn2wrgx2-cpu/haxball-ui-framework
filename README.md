@@ -120,9 +120,6 @@ haxball-ui-framework/
 ├── constants/
 ├── utils/
 │
-├── extensions/
-│   └── admin-panel/            # Admin Panel extension (Ban/Mute/Kick)
-│
 ├── dev/
 │   ├── playground.js           # 13 test groups, 70+ assertions
 │   └── examples.js             # 7 worked examples
