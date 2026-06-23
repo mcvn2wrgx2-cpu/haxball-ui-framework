@@ -344,23 +344,6 @@ More examples in [`dev/examples.js`](dev/examples.js).
 
 ---
 
-## 🔌 Extensions
-
-### Admin Panel
-
-A complete moderation panel for HaxBall room admins — Ban, Mute, Kick with duration, reason, and action history. Sends commands to your server bot's chat handler automatically.
-
-```
-extensions/admin-panel/
-├── ChatBridge.js
-├── ModerationCommands.js
-├── ActionLog.js
-├── AdminPanel.js
-└── admin-panel.bundle.js   ← paste this single file into the console
-```
-
----
-
 ## 🗺️ Roadmap
 
 - [x] **v0 — Core:** windows, content updates, Shadow DOM, event isolation, DOM re-anchor
