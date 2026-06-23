@@ -1,6 +1,4 @@
-<h1 align="center">
-  haxball-ui-framework
-</h1>
+<h1 align="center">haxball-ui-framework / HaxUI</h1>
 
 <p align="center">
   <a href="README.md">🇺🇸 English</a> | 🇪🇸 Español
