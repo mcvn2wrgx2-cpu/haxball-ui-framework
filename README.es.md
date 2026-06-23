@@ -1,7 +1,5 @@
 <p align="center">
-  <a href="https://github.com/mcvn2wrgx2-cpu/haxball-ui-framework/releases/tag/v1.0.0">
-  <img src="assets/banner.png" alt="Link" width="100%">
-</a>
+  <img src="assets/banner.png" alt="HaxBall UI Framework Banner" width="100%" />
 </p>
 
 # haxball-ui-framework
@@ -11,6 +9,9 @@
 </p>
 
 <p align="center">
+<a href="https://www.npmjs.com/package/haxball-ui-framework">
+  <img src="https://img.shields.io/npm/v/haxball-ui-framework.svg?style=flat-square&color=cb3837&logo=npm&logoColor=white" alt="npm version">
+</a>
 <a href="LICENSE">
   <img src="https://img.shields.io/badge/license-MIT-000000.svg?style=flat-square" alt="License">
 </a>
@@ -21,10 +22,7 @@
   <img src="https://img.shields.io/badge/vanilla-JavaScript-f7df1e.svg?style=flat-square&logo=javascript&logoColor=black" alt="Vanilla JS">
 </a>
 <a href="#hoja-de-ruta">
-  <img src="https://img.shields.io/badge/version-v1-2ecc71.svg?style=flat-square" alt="Version v1">
-</a>
-<a href="#estructura-del-proyecto">
-  <img src="https://img.shields.io/badge/contributions-welcome-000000.svg?style=flat-square&logo=git&logoColor=white" alt="Contributions Welcome">
+  <img src="https://img.shields.io/badge/version-v1.0.1-2ecc71.svg?style=flat-square" alt="Version">
 </a>
 </p>
 
@@ -32,6 +30,29 @@
 
 No es un framework completo tipo React. No es un engine de juego.
 Es un **núcleo UI pequeño y bien diseñado** que te da control total del DOM sin pelear con HaxBall.
+
+---
+
+## 📦 Instalación
+
+```bash
+npm install haxball-ui-framework
+```
+
+```js
+// ES Module (Vite, Webpack, Rollup)
+import HaxUI from 'haxball-ui-framework';
+
+// CommonJS (Node.js)
+const HaxUI = require('haxball-ui-framework');
+```
+
+O inyecta el bundle IIFE directamente en HaxBall (sin npm):
+```js
+// Pega dist/haxball-ui-framework.iife.js en la consola de DevTools
+// o cárgalo con @require en un userscript de Tampermonkey
+HaxUI.diagnostics(); // → { initialized: false, version: 'v1', ... }
+```
 
 ---
 
@@ -54,8 +75,6 @@ Todo está construido alrededor de un principio:
 
 ## ⚙️ Arquitectura
 
-El framework se divide en capas, cada una con una sola responsabilidad:
-
 | Capa | Módulo | Responsabilidad |
 | :--- | :--- | :--- |
 | **Bootstrap** | `RootMount` | Detecta el contexto de ejecución, ancla `#haxui-root` a `document.body`, re-ancla si HaxBall limpia el DOM |
@@ -66,7 +85,7 @@ El framework se divide en capas, cada una con una sola responsabilidad:
 | **Estilo** | `StyleManager` | Inyecta estilos base por tema en cada Shadow Root |
 | **Contenido** | `Sanitize` | Sanitización basada en DOMParser — los strings nunca llegan crudos a `innerHTML` |
 | **Interacción** | `DragManager` | Arrastra ventanas desde el header, limitado al viewport |
-| **Interacción** | `ResizeManager` | Redimensiona desde cualquiera de las 4 esquinas, con tamaño mínimo |
+| **Interacción** | `ResizeManager` | Redimensiona desde cualquiera de las 4 esquinas |
 | **Integración** | `ButtonInjector` | Inyecta botones con estilo nativo en la barra de botones de HaxBall |
 | **API pública** | `HaxUI` | `window.HaxUI` — el único nombre global expuesto |
 | **Handle** | `WindowHandle` | Objeto liviano retornado por ventana — no expone internals |
@@ -78,66 +97,87 @@ El framework se divide en capas, cada una con una sola responsabilidad:
 ```txt
 haxball-ui-framework/
 │
-├── core/
-│   ├── HaxUI.js            # Punto de entrada de la API pública
-│   ├── WindowManager.js    # Registro de ventanas, ciclo de vida, z-index
-│   ├── Window.js           # Ventana individual con Shadow DOM
-│   ├── RootMount.js        # Nodo raíz, detección de contexto, re-anclaje
-│   ├── EventGuard.js       # Política por tipo de evento para aislar el juego
-│   ├── EventRegistry.js    # Registro de listeners para destroy() limpio
-│   ├── StyleManager.js     # Estilos por tema inyectados en cada Shadow Root
-│   ├── DragManager.js      # Drag desde el header, limitado al viewport (v1)
-│   ├── ResizeManager.js    # Handles de resize en las esquinas (v1)
-│   └── ButtonInjector.js   # Inyección de botones con estilo nativo de HaxBall (v1)
+├── src/                        # Código fuente ES Module (import/export)
+│   ├── index.js
+│   ├── constants/config.js
+│   ├── utils/sanitize.js
+│   └── core/
+│       ├── HaxUI.js
+│       ├── WindowManager.js
+│       ├── Window.js
+│       ├── RootMount.js
+│       ├── EventGuard.js
+│       ├── EventRegistry.js
+│       ├── StyleManager.js
+│       ├── DragManager.js
+│       ├── ResizeManager.js
+│       └── ButtonInjector.js
 │
+├── dist/                       # Outputs generados por npm run build
+│   ├── haxball-ui-framework.esm.js     # ES Module
+│   ├── haxball-ui-framework.cjs.js     # CommonJS
+│   └── haxball-ui-framework.iife.js    # IIFE — pegar en consola de HaxBall
+│
+├── core/                       # Código IIFE legacy (para build:bundle)
 ├── constants/
-│   └── config.js           # BASE_Z_INDEX, temas, namespace, modos de operación
-│
 ├── utils/
-│   └── sanitize.js         # Wrapper de DOMParser para setContent() seguro
+│
+├── extensions/
+│   └── admin-panel/            # Extensión de panel de administración
 │
 ├── dev/
-│   ├── playground.js       # 13 grupos de tests, 70+ assertions
-│   └── examples.js         # 5 ejemplos trabajados (scoreboard, roster, chat, admin panel, dashboard)
+│   ├── playground.js           # 13 grupos de tests, 70+ assertions
+│   └── examples.js             # 7 ejemplos trabajados
 │
-├── build.js                # Concatena los módulos en un bundle IIFE único
-├── package.json
-└── haxball-ui.bundle.js    # Output generado — esto es lo que se inyecta en HaxBall
+├── build-esm.cjs               # Build de dist/ (ESM + CJS + IIFE)
+├── build.cjs                   # Build del bundle legacy
+└── package.json
 ```
 
 ---
 
 ## 🚀 Inicio Rápido
 
-### 1. Clonar el repositorio
+### Opción A — npm (recomendado para proyectos)
+
+```bash
+npm install haxball-ui-framework
+```
+
+```js
+import HaxUI from 'haxball-ui-framework';
+
+HaxUI.init();
+
+const win = HaxUI.createWindow({
+  id:      'stats',
+  title:   'Estadísticas',
+  theme:   'haxball',
+  width:   260,
+  height:  180,
+  x:       16,
+  y:       16,
+  content: '<p>Cargando...</p>'
+});
+```
+
+### Opción B — Bundle IIFE (inyectar directo en HaxBall)
+
+```bash
+npm run build
+# → dist/haxball-ui-framework.iife.js
+```
+
+Pega en la consola de DevTools de HaxBall o agrega a un userscript de Tampermonkey con `@require file:///ruta/al/haxball-ui-framework.iife.js`.
+
+### Opción C — Build desde el código fuente
 
 ```bash
 git clone https://github.com/mcvn2wrgx2-cpu/haxball-ui-framework
 cd haxball-ui-framework
-```
-
-### 2. Generar el bundle
-
-Sin dependencias. Solo Node.js.
-
-```bash
-node build.js
-# → haxball-ui.bundle.js
-```
-
-### 3. Inyectar en HaxBall
-
-**Opción A — Consola de DevTools** (desarrollo):
-Pegar el contenido de `haxball-ui.bundle.js` directamente en la consola del browser con HaxBall abierto.
-
-**Opción B — Tampermonkey** (recomendado):
-Crear un userscript con `@require file:///ruta/absoluta/a/haxball-ui.bundle.js` y activar el acceso a archivos locales en la configuración de Tampermonkey.
-
-### 4. Verificar que cargó
-
-```js
-HaxUI.diagnostics();
-// { initialized: false, mode: null, rootPresent: false, windowCount: 0, baseZ: 9000, version: 'v0' }
+npm run build        # → dist/ (ESM + CJS + IIFE)
+npm run build:bundle # → haxball-ui.bundle.js (IIFE legacy)
+npm run build:all    # → ambos
 ```
 
 ---
@@ -147,49 +187,46 @@ HaxUI.diagnostics();
 ### Inicializar
 
 ```js
-// Opcional — se llama automáticamente en el primer createWindow() si se omite
-HaxUI.init({ baseZ: 9000 });
+HaxUI.init({ baseZ: 9000 }); // opcional — se llama automáticamente en el primer createWindow()
 ```
 
 ### Crear una ventana
 
 ```js
 const win = HaxUI.createWindow({
-  id: 'stats',
-  title: 'Estadísticas',
-  width: 260,
-  height: 180,
-  x: 16,
-  y: 16,
-  content: '<p>Cargando...</p>',
-
-  // v1
-  theme: 'default',     // 'default' | 'haxball'
-  draggable: true,      // arrastrable desde el header
-  resizable: true,      // redimensionable desde cualquier esquina
-  titleVisible: true    // mostrar/ocultar el header al crearla
+  id:           'mi-ventana',
+  title:        'Mi Ventana',
+  width:        260,
+  height:       180,
+  x:            16,
+  y:            16,
+  content:      '<p>Hola HaxBall</p>',   // string o DOM Node
+  theme:        'default',                // 'default' | 'haxball'
+  draggable:    true,                     // arrastrable desde el header
+  resizable:    true,                     // redimensionable desde las esquinas
+  titleVisible: true,                     // mostrar/ocultar el header al crear
+  closable:     true                      // mostrar botón de cerrar (✕)
 });
 ```
 
 ### Actualizar contenido
 
 ```js
-// Seguro: pasar un Node, no un string con datos externos
+// Seguro: pasar un Node para datos externos (nombres de jugadores, chat)
 const node = document.createElement('div');
 node.textContent = 'Goles: ' + data.goals;
 win.setContent(node);
 
-// También válido para markup estático
+// Markup estático
 win.setContent('<p>Partida terminada</p>');
 ```
 
-### Mostrar / ocultar / título (v1)
+### Mostrar / ocultar / título
 
 ```js
 win.show();
 win.hide();
-
-win.hideTitle();   // colapsa el header, el contenido ocupa toda la ventana
+win.hideTitle();   // colapsa el header
 win.showTitle();
 ```
 
@@ -197,71 +234,72 @@ win.showTitle();
 
 ```js
 win.destroy();
-
-// O por ID
-HaxUI.destroyWindow('stats');
-
-// O todo de una vez (usar al descargar el script)
-HaxUI.destroyAll();
+HaxUI.destroyWindow('mi-ventana');
+HaxUI.destroyAll();   // usar al descargar el script
 ```
 
 ### Obtener una ventana existente
 
 ```js
-const existing = HaxUI.getWindow('stats');
-if (existing) {
-  existing.setContent('<p>Reiniciando...</p>');
-}
-// getWindow() retorna null si no existe — nunca lanza
+const existing = HaxUI.getWindow('mi-ventana'); // null si no existe — nunca lanza
+if (existing) existing.setContent('<p>Actualizado</p>');
 ```
 
-### Botones con estilo nativo (v1)
+### Botones con estilo nativo
 
 ```js
-const btn = HaxUI.createButton({
-  id: 'stats-btn',
+HaxUI.createButton({
+  id:    'stats-btn',
   label: '📊 Stats',
   onClick: () => win.show()
 });
 
-btn.destroy();
-// o
+// O abrir una ventana directamente al hacer click
+HaxUI.createButton({
+  id:    'panel-btn',
+  label: '🛡️ Admin',
+  onOpenWindow: { id: 'admin', title: 'Admin Panel', theme: 'haxball', width: 280, height: 400, x: 20, y: 60 }
+});
+
 HaxUI.destroyButton('stats-btn');
 ```
 
-`createButton()` inyecta directamente dentro del contenedor `.header-btns` de
-HaxBall, apareciendo en línea junto a los botones nativos Rec / Link / Leave.
-Si ese contenedor todavía no está montado, el botón usa un overlay fijo como
-fallback y un `MutationObserver` lo reinyecta en el momento en que la UI de
-HaxBall esté disponible.
+### Diagnóstico
+
+```js
+HaxUI.diagnostics();
+// → { initialized: true, mode: 'shadow', rootPresent: true, windowCount: 2, baseZ: 9000, version: 'v1' }
+```
 
 ---
 
 ## 🎨 El tema `haxball`
 
-`theme: 'haxball'` replica el estilo nativo del `.dialog` de HaxBall usando
-valores extraídos directamente del DOM en vivo (fondo, border-radius, línea
-de acento del header, fuente, colores de botones) — para que una ventana de
-HaxUI pueda verse indistinguible de uno de los diálogos propios de HaxBall:
+`theme: 'haxball'` replica el estilo nativo del `.dialog` de HaxBall usando valores medidos directamente del DOM en vivo con `getComputedStyle()`:
 
 ```js
 HaxUI.createWindow({
-  id: 'confirm',
+  id:    'confirm',
   title: '¿Salir de la sala?',
   theme: 'haxball',
-  width: 300,
-  height: 150,
-  x: 100,
-  y: 100,
-  content: '<p>¿Estás seguro de que quieres salir de la sala?</p><button>Salir</button>'
+  width: 300, height: 150, x: 100, y: 100,
+  content: '<p>¿Estás seguro?</p><button>Salir</button>'
 });
 ```
+
+| Propiedad | Valor |
+| :--- | :--- |
+| Fondo | `rgb(26, 33, 37)` |
+| Border radius | `5px` |
+| Acento del header | `3px solid rgb(193, 53, 53)` |
+| Fuente | `"Open Sans", sans-serif` |
+| Padding del botón | `5px 15px` |
+| Alto del botón | `26px` |
+| Borde del botón | `ninguno` |
 
 ---
 
 ## 🔒 Decisiones de Diseño
-
-Cada decisión responde a un riesgo concreto del entorno HaxBall.
 
 | Decisión | Riesgo mitigado |
 | :--- | :--- |
@@ -272,25 +310,20 @@ Cada decisión responde a un riesgo concreto del entorno HaxBall.
 | `MutationObserver` en `RootMount` | HaxBall limpia el DOM en transiciones de sala |
 | `DOMParser` en `setContent()` | XSS al renderizar strings externos (nombres de jugadores, chat) |
 | Flag `WindowHandle._destroyed` | Llamadas seguras post-destroy — sin errores dentro de callbacks del juego |
-| Detección de contexto en `RootMount.init()` | Script inyectado en el frame equivocado (entornos con iframe) |
-| Listeners de drag adjuntados/removidos por ciclo, fuera de `EventRegistry` | Los listeners del registro persisten durante toda la vida de la ventana — usarlos para el drag hacía que el cursor nunca se soltara |
-| `ButtonInjector` apunta a `.header-btns` con fallback de `MutationObserver` | La barra de botones nativa todavía no está montada cuando corre el script |
-| `buttonBorder: '0'` en el tema haxball | Los botones nativos de HaxBall no tienen borde — verificado con `getComputedStyle()` sobre el DOM en vivo, no asumido |
+| Listeners de drag/resize en fase de captura | `stopPropagation` de `EventGuard` bloqueaba el release del drag |
+| `ButtonInjector` con polling para `.header-btns` | Timing poco confiable con un solo `MutationObserver` |
+| Estilos del botón medidos con `getComputedStyle()` | Diferencia visual con los botones nativos reales de HaxBall |
 
 ---
 
 ## 🎯 Ejemplo: Overlay de Estadísticas en Vivo
 
 ```js
-HaxUI.init();
+import HaxUI from 'haxball-ui-framework';
 
 const stats = HaxUI.createWindow({
-  id: 'haxui-stats',
-  title: 'Estadísticas',
-  width: 260,
-  height: 180,
-  x: 16,
-  y: 16
+  id: 'stats', title: 'Estadísticas', theme: 'haxball',
+  width: 260, height: 180, x: 16, y: 16
 });
 
 function onGameData(data) {
@@ -298,50 +331,31 @@ function onGameData(data) {
   node.innerHTML = [
     '<div>Equipo 1: ' + data.score[0] + '</div>',
     '<div>Equipo 2: ' + data.score[1] + '</div>',
-    '<div>Posesión: ' + data.possession + '%</div>',
-    '<div>Tiempo: ' + data.time + '</div>'
+    '<div>Tiempo: '   + data.time     + '</div>'
   ].join('');
   stats.setContent(node);
 }
 
-function onLeaveRoom() {
-  HaxUI.destroyAll();
-}
+function onLeaveRoom() { HaxUI.destroyAll(); }
 ```
 
-Más ejemplos trabajados — scoreboard en vivo, roster de jugadores, chat log,
-panel de administración, y un dashboard completo con múltiples ventanas —
-están en [`dev/examples.js`](dev/examples.js).
+Más ejemplos en [`dev/examples.js`](dev/examples.js).
 
 ---
 
 ## 🗺️ Hoja de Ruta
 
-- [x] **v0 — Core**
-  - [x] Creación y destrucción de ventanas
-  - [x] Actualización dinámica de contenido
-  - [x] Aislamiento con Shadow DOM y fallback CSS
-  - [x] Aislamiento de eventos del juego
-  - [x] Re-anclaje del DOM en transiciones de HaxBall
-- [x] **v1 — Interacción**
-  - [x] Ventanas arrastrables (drag & drop)
-  - [x] Redimensionado desde las cuatro esquinas
-  - [x] Botones con estilo nativo de HaxBall (`createButton`)
-  - [x] Tema `haxball` que replica el `.dialog` nativo
-  - [x] `hideTitle()` / `showTitle()`
-- [ ] **v2 — Componentes**
-  - [ ] Sistema de componentes para `setContent()`
-  - [ ] Componentes base: texto, tabla, lista, botón
-- [ ] **v3 — Plugins**
-  - [ ] Registro de plugins con `HaxUI.use(plugin)`
-  - [ ] Hooks del ciclo de vida de ventanas para plugins
-  - [ ] Cocinar un Pastel
+- [x] **v0 — Core:** ventanas, contenido dinámico, Shadow DOM, aislamiento de eventos, re-anclaje del DOM
+- [x] **v1 — Interacción:** drag & drop, resize, tema `haxball`, botones nativos, `hideTitle`, botón de cerrar
+- [x] **v1.0.1 — npm:** `import HaxUI from 'haxball-ui-framework'`, outputs ESM + CJS + IIFE
+- [ ] **v2 — Componentes:** sistema de componentes para `setContent()`, componentes base
+- [ ] **v3 — Plugins:** `HaxUI.use(plugin)`, hooks del ciclo de vida de ventanas
 
 ---
 
 ## ⚠️ Estado
 
-> **Estado del proyecto:** v1 — drag, resize, botones nativos, y el tema HaxBall son estables. La API pública puede seguir creciendo hacia v2, pero el contrato de v0 está congelado y no se rompe.
+> **v1.0.1 — estable.** Publicado en npm. El contrato de API de v0/v1 está congelado y no se romperá.
 
 ---
 
@@ -349,8 +363,8 @@ están en [`dev/examples.js`](dev/examples.js).
 
 - superficie mínima de API, máximo control
 - un nombre global, ningún internal expuesto
-- cada decisión trazable a un riesgo real del entorno HaxBall, verificado contra el DOM en vivo
-- extensible a v2–v3 sin romper el contrato de API de v0/v1
+- cada decisión trazable a un riesgo real del entorno HaxBall
+- extensible a v2–v3 sin romper código existente
 
 ---
 
@@ -361,7 +375,7 @@ MIT
 ---
 
 <p align="center">
-  ❤️ <a href=".gitignore">DEVLOG</a>
+  ❤️ <a href="DEVLOG.md">DEVLOG</a>
 </p>
 
 <p align="center">
